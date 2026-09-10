@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0F1620">
+<title>Controle Diário</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>html,body{margin:0;padding:0;background:#F5F6F8;}</style>
+</head>
+<body>
+<div id="ef-root">
+<style>
+#ef-root {
+  --bg: #F5F6F8;
+  --surface: #FFFFFF;
+  --surface-2: #EEF1F5;
+  --text: #16202B;
+  --text-muted: #6B7686;
+  --border: #E2E6EC;
+  --primary: #2F6FED;
+  --primary-ink: #FFFFFF;
+  --success: #16A97B;
+  --success-bg: #E6F7F0;
+  --danger: #E5484D;
+  --danger-bg: #FCE9E9;
+  --accent: #F5A623;
+  --accent-bg: #FEF3DE;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 1px 2px rgba(20,30,45,.06), 0 8px 24px rgba(20,30,45,.08);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+#ef-root[data-theme="dark"] {
+  --bg: #0F1620;
+  --surface: #1A2330;
+  --surface-2: #212C3B;
+  --text: #EAF0F7;
+  --text-muted: #8B99AC;
+  --border: #2B3646;
+  --primary: #5B8DEF;
+  --primary-ink: #08101F;
+  --success: #2FD39A;
+  --success-bg: rgba(47,211,154,.14);
+  --danger: #FF6B6F;
+  --danger-bg: rgba(255,107,111,.14);
+  --accent: #FFC24B;
+  --accent-bg: rgba(255,194,75,.14);
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+}
+#ef-root * { box-sizing: border-box; }
+#ef-root h1, #ef-root h2, #ef-root h3, #ef-root .num {
+  font-family: 'Manrope', 'Inter', sans-serif;
+}
+#ef-root button { font-family: inherit; cursor: pointer; }
+#ef-root input, #ef-root textarea, #ef-root select {
+  font-family: inherit; font-size: 15px; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 11px 12px; width: 100%;
+}
+#ef-root input:focus, #ef-root textarea:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+#ef-scroll { padding: 18px 16px 100px; min-height: 100vh; }
+#ef-root .card {
+  background: var(--surface); border-radius: var(--radius-lg);
+  padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border);
+}
+#ef-root .row { display: flex; align-items: center; gap: 10px; }
+#ef-root .between { justify-content: space-between; }
+#ef-root .muted { color: var(--text-muted); font-size: 13px; }
+#ef-root .label { color: var(--text-muted); font-size: 12.5px; font-weight: 600; letter-spacing: .1px; }
+#ef-root .btn {
+  border: none; border-radius: var(--radius-md); padding: 14px 18px;
+  font-weight: 700; font-size: 15px; display: flex; align-items: center;
+  justify-content: center; gap: 8px; transition: transform .08s ease;
+}
+#ef-root .btn:active { transform: scale(.97); }
+#ef-root .btn-primary { background: var(--primary); color: var(--primary-ink); }
+#ef-root .btn-success { background: var(--success); color: #ffffff; }
+#ef-root .btn-danger { background: var(--danger); color: #fff; }
+#ef-root .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+#ef-root .btn-ghost { background: var(--surface-2); color: var(--text); }
+#ef-root .btn-block { width: 100%; }
+#ef-root .chip {
+  border: 1.5px solid var(--border); background: var(--surface-2); color: var(--text);
+  border-radius: 999px; padding: 8px 15px; font-weight: 700; font-size: 14.5px;
+  white-space: nowrap;
+}
+#ef-root .chip.selected { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
+#ef-root .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+#ef-header { padding: 20px 16px 6px; }
+#ef-header .greet { font-size: 20px; font-weight: 800; }
+#ef-header .date { color: var(--text-muted); font-size: 13.5px; margin-top: 2px; }
+#ef-theme-btn { width:38px; height:38px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); display:flex; align-items:center; justify-content:center; }
+#ef-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+#ef-stat-grid .stat { border-radius: var(--radius-md); padding: 14px; }
+#ef-stat-grid .stat .num { font-size: 25px; font-weight: 800; line-height: 1.1; margin-top: 4px; }
+.stat-entregas { background: var(--surface); border: 1px solid var(--border); }
+.stat-ganhos { background: var(--success-bg); }
+.stat-despesas { background: var(--danger-bg); }
+.stat-lucro { background: var(--accent-bg); }
+.stat-ganhos .num { color: var(--success); }
+.stat-despesas .num { color: var(--danger); }
+.stat-lucro .num { color: #C97E00; }
+#ef-root[data-theme="dark"] .stat-lucro .num { color: var(--accent); }
+#ef-quick { margin-top: 16px; }
+#ef-quick .quick-chip { flex: 1; padding: 16px 4px; font-size: 17px; border-radius: var(--radius-md); background: var(--primary); color: var(--primary-ink); font-weight: 800; border: none; }
+#ef-fab {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 84px;
+  max-width: 448px; width: calc(100% - 32px); z-index: 40;
+}
+#ef-fab button { width: 100%; padding: 16px; font-size: 16.5px; border-radius: 999px; box-shadow: 0 10px 24px rgba(47,111,237,.4); }
+#ef-tabbar {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px; background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; z-index: 30; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+#ef-tabbar button { flex: 1; background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; color: var(--text-muted); font-size: 11px; font-weight: 700; border-radius: 10px; }
+#ef-tabbar button.active { color: var(--primary); }
+#ef-tabbar svg { width: 22px; height: 22px; }
+.ef-section-title { font-size: 17px; font-weight: 800; margin: 22px 0 10px; }
+.ef-goal { margin-top: 12px; }
+.ef-goal-bar-bg { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-top: 6px; }
+.ef-goal-bar-fill { height: 100%; border-radius: 999px; background: var(--primary); transition: width .4s ease; }
+.ef-goal-bar-fill.done { background: var(--success); }
+.ef-delivery-card, .ef-expense-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 12px; display: flex; gap: 12px; align-items: center; margin-bottom: 10px;
+}
+.ef-thumb { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; background: var(--surface-2); flex-shrink: 0; }
+.ef-thumb-placeholder { width: 48px; height: 48px; border-radius: 10px; background: var(--surface-2); flex-shrink: 0; display:flex; align-items:center; justify-content:center; color: var(--text-muted); }
+#ef-modal-overlay {
+  position: fixed; inset: 0; background: rgba(10,15,22,.5); z-index: 100;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+#ef-modal-sheet {
+  background: var(--bg); width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto;
+  border-radius: 22px 22px 0 0; padding: 18px 16px calc(24px + env(safe-area-inset-bottom));
+  animation: ef-slide-up .22s ease-out;
+}
+@keyframes ef-slide-up { from { transform: translateY(16px); opacity: .6; } to { transform: translateY(0); opacity: 1; } }
+.ef-modal-title { font-size: 19px; font-weight: 800; margin-bottom: 14px; }
+.ef-field { margin-bottom: 14px; }
+.ef-field-label { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; display: block; }
+.ef-close-x { width: 34px; height: 34px; border-radius: 50%; background: var(--surface-2); border: none; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--text-muted); }
+.ef-toast {
+  position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%);
+  background: var(--text); color: var(--bg); padding: 12px 20px; border-radius: 999px;
+  font-size: 14px; font-weight: 700; z-index: 200; box-shadow: var(--shadow);
+  max-width: 90%; text-align: center;
+}
+.ef-empty { text-align: center; padding: 40px 16px; color: var(--text-muted); }
+.ef-empty .big { font-size: 34px; margin-bottom: 8px; }
+.ef-photo-preview { width: 100%; height: 160px; border-radius: var(--radius-md); object-fit: cover; background: var(--surface-2); }
+.ef-photo-btns { display: flex; gap: 10px; margin-top: 10px; }
+.ef-week-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; margin-top: 14px; }
+.ef-week-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ef-week-bar { width: 100%; border-radius: 6px 6px 2px 2px; background: var(--primary); min-height: 3px; }
+.ef-week-bar-label { font-size: 10.5px; color: var(--text-muted); font-weight: 700; }
+.ef-achv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.ef-achv { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; text-align: center; opacity: .4; }
+.ef-achv.unlocked { opacity: 1; background: var(--accent-bg); border-color: transparent; }
+.ef-achv .ic { font-size: 26px; }
+.ef-achv .lbl { font-size: 12px; font-weight: 700; margin-top: 4px; }
+.ef-filter-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+.ef-filter-row::-webkit-scrollbar { display: none; }
+.ef-config-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.ef-config-row:last-child { border-bottom: none; }
+.ef-mini-input { width: 76px; text-align: center; padding: 8px 6px; }
+.ef-segment { display: flex; background: var(--surface-2); border-radius: 999px; padding: 3px; }
+.ef-segment button { flex: 1; border: none; background: none; padding: 8px 6px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--text-muted); }
+.ef-segment button.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.ef-limitation { background: var(--accent-bg); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12.5px; color: var(--text); margin-top: 8px; }
+</style>
+
+<div id="ef-scroll"></div>
+<div id="ef-fab-wrap"></div>
+<div id="ef-tabbar"></div>
+<div id="ef-modal-wrap"></div>
+<div id="ef-toast-wrap"></div>
+
+<script>
+(function(){
+
+/* ---------------- constants ---------------- */
+var CATEGORIAS = [
+  {id:'combustivel', label:'Combustível', icon:'⛽'},
+  {id:'alimentacao', label:'Alimentação', icon:'🍔'},
+  {id:'pedagio', label:'Pedágio', icon:'🛣️'},
+  {id:'manutencao', label:'Manutenção', icon:'🔧'},
+  {id:'estacionamento', label:'Estacionamento', icon:'🅿️'},
+  {id:'outros', label:'Outros', icon:'📦'}
+];
+
+var ACHIEVEMENTS = [
+  {id:'primeira_entrega', label:'Primeira entrega', icon:'🏆', check:function(s){ return s.entregas.length>=1; }},
+  {id:'50_entregas', label:'50 entregas', icon:'🏆', check:function(s){ return s.entregas.length>=50; }},
+  {id:'100_entregas', label:'100 entregas', icon:'🏆', check:function(s){ return s.entregas.length>=100; }},
+  {id:'500_entregas', label:'500 entregas', icon:'🏆', check:function(s){ return s.entregas.length>=500; }},
+  {id:'primeira_meta', label:'Primeira meta diária', icon:'🎯', check:function(s){ return s.metaAtingidaAlgumDia === true; }},
+  {id:'7_dias', label:'7 dias trabalhando', icon:'📅', check:function(s){ return s.diasFinalizados.length>=7; }},
+  {id:'1000_faturados', label:'R$ 1.000 faturados', icon:'💰', check:function(s){
+      var total = s.entregas.reduce(function(a,e){return a+e.valor;},0);
+      return total>=1000;
+    }}
+];
+
+var DEFAULT_CONFIG = {
+  valoresRapidos: [8,10,12,15],
+  valorPadrao: 8,
+  custoPorKm: 0.5,
+  metaEntregas: 30,
+  metaGanhos: 300,
+  tema: 'auto'
+};
+
+/* ---------------- state ---------------- */
+var state = {
+  loaded: false,
+  entregas: [],
+  despesas: [],
+  diaAtual: null,
+  diasFinalizados: [],
+  config: JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
+  conquistas: [],
+  metaAtingidaAlgumDia: false,
+  clientes: [] // {id, nome, endereco, usos, ultimoUso}
+};
+
+var ui = {
+  tab: 'dashboard',
+  modal: null,
+  modalData: null,
+  historicoBusca: '',
+  historicoFiltro: 'hoje',
+  historicoView: 'entrega',
+  resumoTab: 'semana'
+};
+
+var _histGroups = []; // scratch: grupos por cliente da última renderização do histórico
+
+var pending = {}; // scratch data for open forms (photo dataurl, selected chips)
+
+/* ---------------- storage helpers ----------------
+   Detecta o ambiente: dentro do Claude usa window.storage (o sistema de
+   salvamento do próprio Claude); fora dele (arquivo aberto direto no
+   navegador, ou depois de virar APK) usa IndexedDB, que é nativo do
+   navegador e funciona sem depender do Claude. */
+var USANDO_CLAUDE_STORAGE = !!(window.storage && typeof window.storage.get==='function' && typeof window.storage.set==='function');
+
+var _idbPromise = null;
+function abrirIDB(){
+  if(_idbPromise) return _idbPromise;
+  _idbPromise = new Promise(function(resolve, reject){
+    if(!window.indexedDB){ reject(new Error('IndexedDB indisponível neste navegador')); return; }
+    var req = indexedDB.open('entrega_facil_db', 1);
+    req.onupgradeneeded = function(e){
+      var db = e.target.result;
+      if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv', {keyPath:'key'});
+    };
+    req.onsuccess = function(e){ resolve(e.target.result); };
+    req.onerror = function(e){ reject(e.target.error); };
+  });
+  return _idbPromise;
+}
+function idbGet(key){
+  return abrirIDB().then(function(db){
+    return new Promise(function(resolve, reject){
+      var tx = db.transaction('kv','readonly');
+      var req = tx.objectStore('kv').get(key);
+      req.onsuccess = function(){ resolve(req.result ? req.result.value : null); };
+      req.onerror = function(){ reject(req.error); };
+    });
+  });
+}
+function idbSet(key, value){
+  return abrirIDB().then(function(db){
+    return new Promise(function(resolve, reject){
+      var tx = db.transaction('kv','readwrite');
+      tx.objectStore('kv').put({key:key, value:value});
+      tx.oncomplete = function(){ resolve(true); };
+      tx.onerror = function(){ reject(tx.error); };
+    });
+  });
+}
+function idbDelete(key){
+  return abrirIDB().then(function(db){
+    return new Promise(function(resolve, reject){
+      var tx = db.transaction('kv','readwrite');
+      tx.objectStore('kv').delete(key);
+      tx.oncomplete = function(){ resolve(true); };
+      tx.onerror = function(){ reject(tx.error); };
+    });
+  });
+}
+
+function storeGet(key){
+  if(USANDO_CLAUDE_STORAGE) return window.storage.get(key, false).then(function(r){ return r?r.value:null; });
+  return idbGet(key);
+}
+function storeSet(key, value){
+  if(USANDO_CLAUDE_STORAGE) return window.storage.set(key, value, false).then(function(r){ return !!r; });
+  return idbSet(key, value);
+}
+function storeDelete(key){
+  if(USANDO_CLAUDE_STORAGE) return window.storage.delete(key, false).catch(function(){});
+  return idbDelete(key).catch(function(){});
+}
+
+function safeGet(key){
+  return storeGet(key).catch(function(){ return null; });
+}
+function safeSet(key, value){
+  return storeSet(key, JSON.stringify(value)).catch(function(e){ console.warn('storage set failed', key, e); });
+}
+
+function loadAll(){
+  return Promise.all([
+    safeGet('ef_entregas'),
+    safeGet('ef_despesas'),
+    safeGet('ef_diaAtual'),
+    safeGet('ef_diasFinalizados'),
+    safeGet('ef_config'),
+    safeGet('ef_conquistas'),
+    safeGet('ef_metaAtingida')
+  ]).then(function(res){
+    // Backward-compat: se existirem chaves antigas separadas, migra a partir delas.
+    var legacy = res[0]!==null || res[1]!==null || res[2]!==null || res[3]!==null || res[4]!==null || res[5]!==null || res[6]!==null;
+    if(legacy){
+      state.entregas = res[0] ? JSON.parse(res[0]) : [];
+      state.despesas = res[1] ? JSON.parse(res[1]) : [];
+      state.diaAtual = res[2] ? JSON.parse(res[2]) : null;
+      state.diasFinalizados = res[3] ? JSON.parse(res[3]) : [];
+      state.config = res[4] ? Object.assign({}, DEFAULT_CONFIG, JSON.parse(res[4])) : JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      state.conquistas = res[5] ? JSON.parse(res[5]) : [];
+      state.metaAtingidaAlgumDia = res[6] ? JSON.parse(res[6]) : false;
+      state.loaded = true;
+      return persist(); // grava tudo já no novo formato unificado
+    }
+    return safeGet('ef_data').then(function(raw){
+      var data = raw ? JSON.parse(raw) : {};
+      state.entregas = data.entregas || [];
+      state.despesas = data.despesas || [];
+      state.diaAtual = data.diaAtual || null;
+      state.diasFinalizados = data.diasFinalizados || [];
+      state.config = data.config ? Object.assign({}, DEFAULT_CONFIG, data.config) : JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      state.conquistas = data.conquistas || [];
+      state.metaAtingidaAlgumDia = data.metaAtingidaAlgumDia || false;
+      state.clientes = data.clientes || [];
+      state.loaded = true;
+    });
+  });
+}
+
+// Todas as gravações são combinadas numa única chave e enfileiradas,
+// para nunca disparar duas chamadas de storage em paralelo.
+// Também há novas tentativas automáticas, já que falhas de armazenamento
+// costumam ser passageiras (problema momentâneo de conexão com o backend).
+var saveQueue = Promise.resolve();
+var saveFailed = false;
+var storageOk = true;
+
+function setWithRetry(key, value, tentativas){
+  tentativas = tentativas || 3;
+  return storeSet(key, value).then(function(result){
+    if(!result) throw new Error('sem resultado');
+    return result;
+  }).catch(function(e){
+    if(tentativas>1){
+      return new Promise(function(resolve){ setTimeout(resolve, 500); })
+        .then(function(){ return setWithRetry(key, value, tentativas-1); });
+    }
+    throw e;
+  });
+}
+
+function persist(){
+  var snapshot = {
+    entregas: state.entregas,
+    despesas: state.despesas,
+    diaAtual: state.diaAtual,
+    diasFinalizados: state.diasFinalizados,
+    config: state.config,
+    conquistas: state.conquistas,
+    metaAtingidaAlgumDia: state.metaAtingidaAlgumDia,
+    clientes: state.clientes
+  };
+  saveQueue = saveQueue.then(function(){
+    return setWithRetry('ef_data', JSON.stringify(snapshot));
+  }).then(function(){
+    if(!storageOk){ storageOk = true; toast('Conexão com o armazenamento restabelecida ✓'); }
+    saveFailed = false;
+  }).catch(function(e){
+    console.warn('persist falhou (dados continuam disponíveis nesta sessão):', e && e.message);
+    storageOk = false;
+    if(!saveFailed){
+      saveFailed = true;
+      toast('⚠️ Não foi possível salvar seus dados agora. Continue usando — vou tentar salvar de novo automaticamente.');
+    }
+  });
+  return saveQueue;
+}
+
+function setFoto(id, dataUrl){
+  return setWithRetry('ef_foto_'+id, dataUrl).catch(function(e){
+    console.warn('não foi possível salvar a foto:', e && e.message);
+    toast('⚠️ A foto não pôde ser salva. O resto da entrega foi salvo normalmente.');
+  });
+}
+function getFoto(id){ return storeGet('ef_foto_'+id).catch(function(){return null;}); }
+function deleteFoto(id){ return storeDelete('ef_foto_'+id); }
+
+/* ---------------- utils ---------------- */
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function pad(n){ return n<10?'0'+n:''+n; }
+function nowTimeStr(){ var d=new Date(); return pad(d.getHours())+':'+pad(d.getMinutes()); }
+function formatBRL(n){
+  n = Number(n)||0;
+  return 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function formatKm(n){
+  n = Number(n)||0;
+  return n.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + ' km';
+}
+function formatDateBR(iso){
+  var p = iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
+}
+function weekdayShort(iso){
+  var d = new Date(iso+'T12:00:00');
+  return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()];
+}
+function minutesBetween(t1,t2){
+  var a=t1.split(':'), b=t2.split(':');
+  var m1=parseInt(a[0])*60+parseInt(a[1]);
+  var m2=parseInt(b[0])*60+parseInt(b[1]);
+  var diff=m2-m1; if(diff<0) diff+=24*60;
+  return diff;
+}
+function fmtDuracao(mins){
+  var h=Math.floor(mins/60), m=mins%60;
+  return h+'h'+pad(m)+'min';
+}
+function toast(msg){
+  var wrap = document.getElementById('ef-toast-wrap');
+  wrap.innerHTML = '<div class="ef-toast">'+msg+'</div>';
+  setTimeout(function(){ wrap.innerHTML=''; }, 2200);
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+}
+
+/* ---------------- computed stats ---------------- */
+function entregasDoDia(dateStr){ return state.entregas.filter(function(e){ return e.data===dateStr; }); }
+function despesasDoDia(dateStr){ return state.despesas.filter(function(e){ return e.data===dateStr; }); }
+function sumValor(arr){ return arr.reduce(function(a,x){return a+x.valor;},0); }
+
+function statsHoje(){
+  var d = todayISO();
+  var ents = entregasDoDia(d);
+  var desps = despesasDoDia(d);
+  var faturamento = sumValor(ents);
+  var despesasTotal = sumValor(desps);
+  return {
+    count: ents.length,
+    faturamento: faturamento,
+    despesas: despesasTotal,
+    lucro: faturamento - despesasTotal
+  };
+}
+
+function tempoTrabalhadoHoje(){
+  if(!state.diaAtual) return null;
+  var mins = minutesBetween(state.diaAtual.horaInicio, nowTimeStr());
+  return fmtDuracao(mins);
+}
+
+/* ---------------- rastreamento de KM por GPS durante o dia ----------------
+   Enquanto o dia está ativo, soma a distância percorrida usando a localização
+   do celular, sem precisar digitar nada. É uma ESTIMATIVA (o odômetro do
+   veículo em KM inicial/final continua sendo o valor oficial no resumo do dia). */
+var _geoWatchId = null;
+var _ultimaPosicaoGPS = null;
+var _persistGpsTimer = null;
+var _tickInterval = null;
+var _avisoGpsMostrado = false;
+
+function haversineKm(lat1, lon1, lat2, lon2){
+  function toRad(d){ return d*Math.PI/180; }
+  var R = 6371;
+  var dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function persistGpsThrottled(){
+  if(_persistGpsTimer) return;
+  _persistGpsTimer = setTimeout(function(){ _persistGpsTimer=null; persist(); }, 15000);
+}
+
+function iniciarRastreioGPS(){
+  if(!state.diaAtual || _geoWatchId!==null) return;
+  if(!navigator.geolocation){ return; }
+  _ultimaPosicaoGPS = null;
+  _geoWatchId = navigator.geolocation.watchPosition(function(pos){
+    var lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy;
+    if(acc && acc > 60){ return; } // leitura pouco precisa, ignora
+    if(_ultimaPosicaoGPS){
+      var d = haversineKm(_ultimaPosicaoGPS.lat, _ultimaPosicaoGPS.lon, lat, lon);
+      if(d > 0.01 && d < 3){ // ignora ruído parado (<10m) e saltos irreais de GPS (>3km entre leituras)
+        state.diaAtual.kmGpsAcumulado = (state.diaAtual.kmGpsAcumulado||0) + d;
+        atualizarKmGpsNaTela();
+        persistGpsThrottled();
+      }
+    }
+    _ultimaPosicaoGPS = {lat:lat, lon:lon};
+  }, function(err){
+    if(err.code===1 && !_avisoGpsMostrado){ // PERMISSION_DENIED
+      _avisoGpsMostrado = true;
+      toast('📍 Permita a localização para o app contar os KM automaticamente. Você ainda pode informar o KM manualmente ao finalizar o dia.');
+    }
+  }, {enableHighAccuracy:true, maximumAge:5000, timeout:20000});
+
+  if(_tickInterval===null){
+    _tickInterval = setInterval(function(){
+      atualizarKmGpsNaTela();
+      atualizarTempoNaTela();
+    }, 60000);
+  }
+}
+
+function pararRastreioGPS(){
+  if(_geoWatchId!==null){ navigator.geolocation.clearWatch(_geoWatchId); _geoWatchId = null; }
+  if(_tickInterval!==null){ clearInterval(_tickInterval); _tickInterval = null; }
+  _ultimaPosicaoGPS = null;
+}
+
+function atualizarKmGpsNaTela(){
+  var el = document.getElementById('ef-km-gps-live');
+  if(el && state.diaAtual){
+    var km = state.diaAtual.kmGpsAcumulado || 0;
+    el.textContent = km.toFixed(1).replace('.', ',') + ' km';
+  }
+}
+function atualizarTempoNaTela(){
+  var el = document.getElementById('ef-tempo-live');
+  if(el && state.diaAtual){ el.textContent = tempoTrabalhadoHoje(); }
+}
+
+function last7Days(){
+  var days = [];
+  for(var i=6;i>=0;i--){
+    var d = new Date();
+    d.setDate(d.getDate()-i);
+    days.push(d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()));
+  }
+  return days;
+}
+
+function kmDoDia(dia){
+  if(!dia) return 0;
+  if(dia.kmInicial!=null && dia.kmFinal!=null) return dia.kmFinal - dia.kmInicial;
+  if(dia.kmGpsAcumulado) return dia.kmGpsAcumulado; // dia em andamento
+  if(dia.kmGpsEstimado) return dia.kmGpsEstimado; // dia já finalizado sem KM manual
+  return 0;
+}
+
+function statsForDate(dateStr){
+  var ents = entregasDoDia(dateStr);
+  var desps = despesasDoDia(dateStr);
+  var faturamento = sumValor(ents);
+  var despesasTotal = sumValor(desps);
+  var dia = state.diasFinalizados.find(function(x){return x.data===dateStr;}) || (state.diaAtual && state.diaAtual.data===dateStr ? state.diaAtual : null);
+  var km = dia ? kmDoDia(dia) : null;
+  if(km===0) km = null;
+  return {
+    data: dateStr, count: ents.length, faturamento: faturamento,
+    despesas: despesasTotal, lucro: faturamento-despesasTotal, km: km
+  };
+}
+
+function statsMonth(){
+  var now = new Date();
+  var y = now.getFullYear(), m = now.getMonth();
+  var ents = state.entregas.filter(function(e){ var d=new Date(e.data+'T12:00:00'); return d.getFullYear()===y && d.getMonth()===m; });
+  var desps = state.despesas.filter(function(e){ var d=new Date(e.data+'T12:00:00'); return d.getFullYear()===y && d.getMonth()===m; });
+  var faturamento = sumValor(ents), despesasTotal = sumValor(desps);
+  var diasComEntrega = {};
+  ents.forEach(function(e){ diasComEntrega[e.data] = (diasComEntrega[e.data]||0) + e.valor; });
+  var diasArr = Object.keys(diasComEntrega);
+  var melhorDia = null, melhorValor = -1;
+  diasArr.forEach(function(d){ if(diasComEntrega[d]>melhorValor){ melhorValor=diasComEntrega[d]; melhorDia=d; } });
+  var diasFinalizadosMes = state.diasFinalizados.filter(function(x){ var d=new Date(x.data+'T12:00:00'); return d.getFullYear()===y && d.getMonth()===m; });
+  var kmTotal = diasFinalizadosMes.reduce(function(a,x){ return a + kmDoDia(x); }, 0);
+  if(state.diaAtual){
+    var dAtual = new Date(state.diaAtual.data+'T12:00:00');
+    if(dAtual.getFullYear()===y && dAtual.getMonth()===m) kmTotal += kmDoDia(state.diaAtual);
+  }
+  return {
+    count: ents.length, faturamento: faturamento, despesas: despesasTotal, lucro: faturamento-despesasTotal,
+    km: kmTotal, mediaDiaria: diasArr.length ? faturamento/diasArr.length : 0,
+    mediaEntrega: ents.length ? faturamento/ents.length : 0,
+    reaisPorKm: kmTotal>0 ? faturamento/kmTotal : null,
+    melhorDia: melhorDia, melhorValor: melhorValor
+  };
+}
+
+/* ---------------- achievements ---------------- */
+function checkAchievements(){
+  var newly = [];
+  ACHIEVEMENTS.forEach(function(a){
+    var already = state.conquistas.some(function(c){return c.id===a.id;});
+    if(!already && a.check(state)){
+      state.conquistas.push({id:a.id, data: todayISO()});
+      newly.push(a);
+    }
+  });
+  if(newly.length){
+    persist();
+    newly.forEach(function(a, i){
+      setTimeout(function(){ toast('🏆 Conquista desbloqueada: '+a.label); }, i*2400);
+    });
+  }
+}
+
+function checkMetaDiaria(){
+  var s = statsHoje();
+  if((s.count>=state.config.metaEntregas || s.faturamento>=state.config.metaGanhos) && !state.metaAtingidaAlgumDia){
+    state.metaAtingidaAlgumDia = true;
+    persist();
+  }
+}
+
+/* ---------------- agenda de clientes (autocompleta endereço por nome) ---------------- */
+function findCliente(nome){
+  var key = (nome||'').trim().toLowerCase();
+  if(!key) return null;
+  return state.clientes.find(function(c){ return c.nome.toLowerCase()===key; }) || null;
+}
+function upsertCliente(nome, endereco){
+  nome = (nome||'').trim();
+  endereco = (endereco||'').trim();
+  if(!nome) return;
+  var existing = findCliente(nome);
+  if(existing){
+    if(endereco) existing.endereco = endereco;
+    existing.usos = (existing.usos||0) + 1;
+    existing.ultimoUso = Date.now();
+  } else {
+    state.clientes.push({id:uid(), nome:nome, endereco:endereco, usos:1, ultimoUso:Date.now()});
+  }
+}
+function clientesFrequentes(limit){
+  return state.clientes.slice()
+    .sort(function(a,b){ return (b.ultimoUso||0)-(a.ultimoUso||0); })
+    .slice(0, limit||6);
+}
+
+/* ---------------- theme ---------------- */
+function applyTheme(){
+  var root = document.getElementById('ef-root');
+  var t = state.config.tema;
+  if(t==='auto'){
+    t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  root.setAttribute('data-theme', t);
+}
+
+/* ---------------- icons (inline svg) ---------------- */
+var ICONS = {
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+  wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="16" cy="15" r="1"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
+  camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h3l2-3h8l2 3h3v12H3z"/><circle cx="12" cy="14" r="4"/></svg>',
+  image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>',
+  sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>'
+};
+
+/* ---------------- render: root ---------------- */
+function render(){
+  applyTheme();
+  renderTabbar();
+  renderFab();
+  if(ui.tab==='dashboard') renderDashboard();
+  else if(ui.tab==='historico') renderHistorico();
+  else if(ui.tab==='despesas') renderDespesas();
+  else if(ui.tab==='resumos') renderResumos();
+  else if(ui.tab==='config') renderConfig();
+  renderModal();
+}
+
+function renderTabbar(){
+  var tabs = [
+    {id:'dashboard', label:'Início', icon:ICONS.home},
+    {id:'historico', label:'Histórico', icon:ICONS.clock},
+    {id:'despesas', label:'Despesas', icon:ICONS.wallet},
+    {id:'resumos', label:'Resumo', icon:ICONS.chart},
+    {id:'config', label:'Ajustes', icon:ICONS.gear}
+  ];
+  var html = tabs.map(function(t){
+    return '<button class="'+(ui.tab===t.id?'active':'')+'" onclick="EF.setTab(\''+t.id+'\')">'+t.icon+'<span>'+t.label+'</span></button>';
+  }).join('');
+  document.getElementById('ef-tabbar').innerHTML = html;
+}
+
+function renderFab(){
+  if(ui.tab!=='dashboard' && ui.tab!=='historico'){ document.getElementById('ef-fab-wrap').innerHTML=''; return; }
+  document.getElementById('ef-fab-wrap').innerHTML =
+    '<div id="ef-fab"><button class="btn btn-primary" onclick="EF.openAddEntrega()">+ Adicionar entrega</button></div>';
+}
+
+/* ---------------- dashboard ---------------- */
+function renderDashboard(){
+  var s = statsHoje();
+  var d = new Date();
+  var diasSemana = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  var meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var dataStr = diasSemana[d.getDay()]+', '+d.getDate()+' de '+meses[d.getMonth()];
+
+  var diaBtnHtml = '';
+  if(!state.diaAtual){
+    diaBtnHtml = '<button class="btn btn-primary btn-block" onclick="EF.openIniciarDia()">Iniciar dia</button>';
+  } else {
+    var kmGpsAtual = (state.diaAtual.kmGpsAcumulado||0).toFixed(1).replace('.',',');
+    diaBtnHtml = '<div class="row between">' +
+      '<div><div class="label">Dia iniciado às '+state.diaAtual.horaInicio+'</div>' +
+      '<div class="muted">Trabalhando há <span id="ef-tempo-live">'+tempoTrabalhadoHoje()+'</span></div>' +
+      '<div class="muted">📍 KM rodados hoje: <span id="ef-km-gps-live">'+kmGpsAtual+' km</span></div></div>' +
+      '<button class="btn btn-outline" onclick="EF.openFinalizarDia()">Finalizar dia</button></div>';
+  }
+
+  var quickHtml = '';
+  if(state.diaAtual){
+    quickHtml = '<div id="ef-quick"><div class="label">Registro rápido</div>' +
+      '<div class="chip-row" style="margin-top:8px;">' +
+      state.config.valoresRapidos.map(function(v){
+        return '<button class="quick-chip" onclick="EF.quickAdd('+v+')">R$ '+v+'</button>';
+      }).join('') +
+      '</div></div>';
+  }
+
+  var metaEntregasPct = Math.min(100, Math.round((s.count/state.config.metaEntregas)*100 || 0));
+  var metaGanhosPct = Math.min(100, Math.round((s.faturamento/state.config.metaGanhos)*100 || 0));
+
+  var html = '';
+  html += '<div id="ef-header" style="padding:0 0 0;"><div class="row between">' +
+    '<div><div class="greet">Olá! 👋</div><div class="date">'+dataStr+'</div></div>' +
+    '<button id="ef-theme-btn" onclick="EF.cycleTheme()">'+(document.getElementById('ef-root').getAttribute('data-theme')==='dark'?ICONS.moon:ICONS.sun)+'</button>' +
+    '</div></div>';
+
+  html += '<div class="card" style="margin-top:14px;">' + diaBtnHtml + '</div>';
+
+  html += '<div id="ef-stat-grid">' +
+    '<div class="stat stat-entregas"><div class="label">Entregas hoje</div><div class="num">'+s.count+'</div></div>' +
+    '<div class="stat stat-ganhos"><div class="label">Ganhos hoje</div><div class="num">'+formatBRL(s.faturamento)+'</div></div>' +
+    '<div class="stat stat-despesas"><div class="label">Despesas</div><div class="num">'+formatBRL(s.despesas)+'</div></div>' +
+    '<div class="stat stat-lucro"><div class="label">Lucro líquido</div><div class="num">'+formatBRL(s.lucro)+'</div></div>' +
+    '</div>';
+
+  html += quickHtml;
+
+  html += '<div class="ef-section-title">Metas de hoje</div>';
+  html += '<div class="card">';
+  html += '<div class="ef-goal"><div class="row between"><span class="label">Entregas</span><span class="muted">'+s.count+' / '+state.config.metaEntregas+' ('+metaEntregasPct+'%)</span></div>' +
+    '<div class="ef-goal-bar-bg"><div class="ef-goal-bar-fill'+(metaEntregasPct>=100?' done':'')+'" style="width:'+metaEntregasPct+'%"></div></div></div>';
+  html += '<div class="ef-goal"><div class="row between"><span class="label">Ganhos</span><span class="muted">'+formatBRL(s.faturamento)+' / '+formatBRL(state.config.metaGanhos)+' ('+metaGanhosPct+'%)</span></div>' +
+    '<div class="ef-goal-bar-bg"><div class="ef-goal-bar-fill'+(metaGanhosPct>=100?' done':'')+'" style="width:'+metaGanhosPct+'%"></div></div></div>';
+  if(metaEntregasPct>=100 || metaGanhosPct>=100){
+    html += '<div class="ef-limitation" style="background:var(--success-bg);color:var(--success);margin-top:12px;">🎉 Meta do dia batida! Continue assim.</div>';
+  }
+  html += '</div>';
+
+  document.getElementById('ef-scroll').innerHTML = html;
+}
+
+function cycleTheme(){
+  var order = ['light','dark','auto'];
+  var idx = order.indexOf(state.config.tema);
+  state.config.tema = order[(idx+1)%3];
+  persist();
+  render();
+  toast('Tema: '+ (state.config.tema==='light'?'Claro':state.config.tema==='dark'?'Escuro':'Automático'));
+}
+
+function quickAdd(valor){
+  var e = {
+    id: uid(), valor: valor, cliente:'', endereco:'', observacao:'',
+    temFoto:false, data: todayISO(), horario: nowTimeStr(), timestamp: Date.now()
+  };
+  state.entregas.push(e);
+  persist();
+  checkMetaDiaria();
+  checkAchievements();
+  render();
+  toast('Entrega de '+formatBRL(valor)+' registrada ✓');
+}
+
+/* ---------------- add / edit entrega modal ---------------- */
+function openAddEntrega(){
+  if(!state.diaAtual){
+    toast('Inicie o dia antes de registrar uma entrega');
+    openIniciarDia();
+    return;
+  }
+  pending = {valor: state.config.valorPadrao, fotoDataUrl:null, editId:null};
+  ui.modal = 'entrega';
+  render();
+}
+function openEditEntrega(id){
+  var e = state.entregas.find(function(x){return x.id===id;});
+  if(!e) return;
+  pending = {valor: e.valor, fotoDataUrl:null, editId:id};
+  ui.modal = 'entrega';
+  render();
+  if(e.temFoto){
+    getFoto(id).then(function(url){
+      pending.fotoDataUrl = url;
+      var img = document.getElementById('ef-photo-preview');
+      if(img) img.outerHTML = '<img id="ef-photo-preview" class="ef-photo-preview" src="'+url+'">';
+    });
+  }
+}
+
+function renderEntregaModal(){
+  var isEdit = !!pending.editId;
+  var existing = isEdit ? state.entregas.find(function(x){return x.id===pending.editId;}) : null;
+  var quicks = state.config.valoresRapidos;
+  var chipHtml = quicks.map(function(v){
+    return '<button type="button" class="chip'+(pending.valor===v?' selected':'')+'" data-v="'+v+'" onclick="EF.selectValorChip(this,'+v+')">R$ '+v+'</button>';
+  }).join('') + '<button type="button" class="chip'+(quicks.indexOf(pending.valor)===-1?' selected':'')+'" id="ef-chip-outro" onclick="EF.selectValorOutro()">Outro valor</button>';
+
+  var showCustom = quicks.indexOf(pending.valor)===-1;
+
+  var html = '';
+  html += '<div class="row between"><div class="ef-modal-title">'+(isEdit?'Editar entrega':'Adicionar entrega')+'</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
+
+  html += '<div class="ef-field"><span class="ef-field-label">Valor</span><div class="chip-row">'+chipHtml+'</div>' +
+    '<div id="ef-valor-custom-wrap" style="margin-top:10px; display:'+(showCustom?'block':'none')+';">' +
+    '<input type="number" inputmode="decimal" id="ef-valor-custom" placeholder="0,00" value="'+(showCustom?pending.valor:'')+'" oninput="EF.onCustomValorInput(this.value)"></div></div>';
+
+  var freq = clientesFrequentes(6);
+  html += '<div class="ef-field"><span class="ef-field-label">Nome do cliente (opcional)</span>';
+  if(freq.length){
+    html += '<div class="chip-row" id="ef-clientes-freq" style="margin-bottom:8px;">' + freq.map(function(c){
+      return '<button type="button" class="chip" onclick="EF.selectClienteChip(this,\''+c.id+'\')">'+escapeHtml(c.nome)+'</button>';
+    }).join('') + '</div>';
+  }
+  html += '<input id="ef-f-cliente" placeholder="Ex: João da Silva" value="'+escapeHtml(existing?existing.cliente:'')+'" oninput="EF.onClienteInput(this.value)"></div>';
+
+  html += '<div class="ef-field"><span class="ef-field-label">Foto da entrega (opcional)</span>';
+  if(pending.fotoDataUrl){
+    html += '<img id="ef-photo-preview" class="ef-photo-preview" src="'+pending.fotoDataUrl+'">';
+  } else {
+    html += '<div id="ef-photo-preview" class="ef-photo-preview" style="display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;">Nenhuma foto</div>';
+  }
+  html += '<div class="ef-photo-btns">' +
+    '<button type="button" class="btn btn-ghost" style="flex:1" onclick="document.getElementById(\'ef-cam-input\').click()">'+ICONS.camera+' Tirar foto</button>' +
+    '<button type="button" class="btn btn-ghost" style="flex:1" onclick="document.getElementById(\'ef-gal-input\').click()">'+ICONS.image+' Galeria</button>' +
+    '</div>' +
+    '<input type="file" accept="image/*" capture="environment" id="ef-cam-input" style="display:none" onchange="EF.onPhotoChosen(this)">' +
+    '<input type="file" accept="image/*" id="ef-gal-input" style="display:none" onchange="EF.onPhotoChosen(this)">' +
+    (pending.fotoDataUrl ? '<button type="button" class="btn btn-ghost" style="margin-top:8px;width:100%;color:var(--danger);" onclick="EF.removePhoto()">Remover foto</button>' : '') +
+    '<div class="muted" style="margin-top:6px;font-size:12px;">"Tirar foto" abre a câmera direto; "Galeria" deixa escolher uma foto já existente.</div>' +
+    '</div>';
+
+  html += '<div class="ef-field"><span class="ef-field-label">Endereço (opcional)</span><input id="ef-f-endereco" placeholder="Rua, número, bairro" value="'+escapeHtml(existing?existing.endereco:'')+'"></div>';
+  html += '<div class="ef-field"><span class="ef-field-label">Observação (opcional)</span><textarea id="ef-f-obs" rows="2" placeholder="Alguma observação...">'+escapeHtml(existing?existing.observacao:'')+'</textarea></div>';
+
+  html += '<button class="btn btn-success btn-block" onclick="EF.saveEntrega()" style="margin-top:6px;">Salvar entrega</button>';
+  return html;
+}
+
+function selectValorChip(el, v){
+  pending.valor = v;
+  var parent = el.parentElement;
+  Array.prototype.forEach.call(parent.querySelectorAll('.chip'), function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+  document.getElementById('ef-valor-custom-wrap').style.display = 'none';
+}
+function selectValorOutro(){
+  pending.valor = null;
+  var sheet = document.getElementById('ef-modal-sheet');
+  Array.prototype.forEach.call(sheet.querySelectorAll('.chip'), function(c){ c.classList.remove('selected'); });
+  document.getElementById('ef-chip-outro').classList.add('selected');
+  var wrap = document.getElementById('ef-valor-custom-wrap');
+  wrap.style.display = 'block';
+  document.getElementById('ef-valor-custom').value='';
+  document.getElementById('ef-valor-custom').focus();
+}
+function onCustomValorInput(v){ pending.valor = parseFloat(v.replace(',','.')) || 0; }
+
+function onClienteInput(v){
+  var match = findCliente(v);
+  var enderecoEl = document.getElementById('ef-f-endereco');
+  if(match && match.endereco && enderecoEl && !enderecoEl.value.trim()){
+    enderecoEl.value = match.endereco;
+    if(pending.lastAutoFillCliente !== match.nome){
+      pending.lastAutoFillCliente = match.nome;
+      toast('📍 Endereço de '+match.nome+' preenchido automaticamente');
+    }
+  }
+}
+function selectClienteChip(el, clienteId){
+  var c = state.clientes.find(function(x){ return x.id===clienteId; });
+  if(!c) return;
+  document.getElementById('ef-f-cliente').value = c.nome;
+  var enderecoEl = document.getElementById('ef-f-endereco');
+  if(enderecoEl && c.endereco) enderecoEl.value = c.endereco;
+  var parent = el.parentElement;
+  Array.prototype.forEach.call(parent.querySelectorAll('.chip'), function(x){ x.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function onPhotoChosen(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  resizeImage(file, 640, 0.65).then(function(dataUrl){
+    pending.fotoDataUrl = dataUrl;
+    var img = document.getElementById('ef-photo-preview');
+    if(img){
+      var newImg = document.createElement('img');
+      newImg.id = 'ef-photo-preview'; newImg.className='ef-photo-preview'; newImg.src = dataUrl;
+      img.replaceWith(newImg);
+    }
+    var wrap = img.parentElement;
+    if(!document.getElementById('ef-remove-photo-btn')){
+      var btn = document.createElement('button');
+      btn.type='button'; btn.id='ef-remove-photo-btn'; btn.className='btn btn-ghost';
+      btn.style.cssText='margin-top:8px;width:100%;color:var(--danger);';
+      btn.textContent='Remover foto';
+      btn.onclick = removePhoto;
+      wrap.appendChild(btn);
+    }
+  });
+}
+function removePhoto(){
+  pending.fotoDataUrl = null;
+  render();
+}
+
+function resizeImage(file, maxDim, quality){
+  return new Promise(function(resolve){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        var w = img.width, h = img.height;
+        if(w>h && w>maxDim){ h = h*(maxDim/w); w = maxDim; }
+        else if(h>=w && h>maxDim){ w = w*(maxDim/h); h = maxDim; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function saveEntrega(){
+  var valor = pending.valor;
+  if(!valor || valor<=0){ toast('Informe um valor válido para a entrega'); return; }
+  var cliente = (document.getElementById('ef-f-cliente')||{}).value || '';
+  var endereco = (document.getElementById('ef-f-endereco')||{}).value || '';
+  var obs = (document.getElementById('ef-f-obs')||{}).value || '';
+  if(cliente.trim()) upsertCliente(cliente, endereco);
+
+  if(pending.editId){
+    var e = state.entregas.find(function(x){return x.id===pending.editId;});
+    e.valor = valor; e.cliente = cliente; e.endereco = endereco; e.observacao = obs;
+    if(pending.fotoDataUrl){ e.temFoto = true; setFoto(e.id, pending.fotoDataUrl); }
+    else if(pending.fotoDataUrl===null && e.temFoto){ e.temFoto=false; deleteFoto(e.id); }
+    persist();
+    toast('Entrega atualizada ✓');
+  } else {
+    var id = uid();
+    var novo = {
+      id:id, valor:valor, cliente:cliente, endereco:endereco, observacao:obs,
+      temFoto: !!pending.fotoDataUrl, data: todayISO(), horario: nowTimeStr(), timestamp: Date.now()
+    };
+    state.entregas.push(novo);
+    if(pending.fotoDataUrl) setFoto(id, pending.fotoDataUrl);
+    persist();
+    checkMetaDiaria();
+    checkAchievements();
+    toast('Entrega salva ✓');
+  }
+  closeModal();
+}
+
+function deleteEntrega(id){
+  openConfirm('Excluir esta entrega?', 'Essa ação não pode ser desfeita.', function(){
+    state.entregas = state.entregas.filter(function(x){return x.id!==id;});
+    deleteFoto(id);
+    persist();
+    closeModal();
+    toast('Entrega excluída');
+  });
+}
+
+/* ---------------- detail modal ---------------- */
+function openEntregaDetalhe(id){
+  ui.modal = 'entregaDetalhe';
+  ui.modalData = id;
+  render();
+}
+function renderEntregaDetalhe(id){
+  var e = state.entregas.find(function(x){return x.id===id;});
+  if(!e) return '<div class="muted">Entrega não encontrada.</div>';
+  var html = '<div class="row between"><div class="ef-modal-title">Detalhes da entrega</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
+  html += '<div class="card">';
+  html += '<div class="row between"><span class="label">Valor</span><span class="num" style="font-size:22px;color:var(--success);">'+formatBRL(e.valor)+'</span></div>';
+  html += '<div style="margin-top:10px;" class="muted">'+formatDateBR(e.data)+' às '+e.horario+'</div>';
+  if(e.cliente) html += '<div style="margin-top:10px;"><span class="label">Cliente</span><div>'+escapeHtml(e.cliente)+'</div></div>';
+  if(e.endereco) html += '<div style="margin-top:10px;"><span class="label">Endereço</span><div>'+escapeHtml(e.endereco)+'</div></div>';
+  if(e.observacao) html += '<div style="margin-top:10px;"><span class="label">Observação</span><div>'+escapeHtml(e.observacao)+'</div></div>';
+  html += '<div id="ef-detail-photo" style="margin-top:12px;"></div>';
+  html += '</div>';
+  html += '<div class="row" style="margin-top:14px;gap:10px;">' +
+    '<button class="btn btn-outline" style="flex:1" onclick="EF.openEditEntrega(\''+id+'\')">Editar</button>' +
+    '<button class="btn btn-danger" style="flex:1" onclick="EF.deleteEntrega(\''+id+'\')">Excluir</button>' +
+    '</div>';
+  if(e.temFoto){
+    getFoto(id).then(function(url){
+      var el = document.getElementById('ef-detail-photo');
+      if(el && url) el.innerHTML = '<img class="ef-photo-preview" style="height:220px;" src="'+url+'">';
+    });
+  }
+  return html;
+}
+
+/* ---------------- iniciar / finalizar dia ---------------- */
+function openIniciarDia(){ ui.modal='iniciarDia'; render(); }
+function renderIniciarDiaModal(){
+  var html = '<div class="row between"><div class="ef-modal-title">Iniciar dia</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
+  html += '<div class="muted" style="margin-bottom:14px;">'+formatDateBR(todayISO())+' • início às '+nowTimeStr()+'</div>';
+  html += '<div class="ef-field"><span class="ef-field-label">KM inicial (opcional)</span><input type="number" inputmode="decimal" id="ef-km-inicial" placeholder="Ex: 12350"></div>';
+  html += '<div class="ef-field"><span class="ef-field-label">Combustível inicial (opcional)</span><input id="ef-combustivel-inicial" placeholder="Ex: tanque cheio, 1/2 tanque..."></div>';
+  html += '<button class="btn btn-primary btn-block" onclick="EF.confirmIniciarDia()">Iniciar dia</button>';
+  return html;
+}
+function confirmIniciarDia(){
+  var km = document.getElementById('ef-km-inicial').value;
+  var comb = document.getElementById('ef-combustivel-inicial').value;
+  state.diaAtual = {
+    id: uid(), data: todayISO(), horaInicio: nowTimeStr(),
+    kmInicial: km!=='' ? parseFloat(km) : null,
+    combustivelInicial: comb || null,
+    horaFim: null, kmFinal: null, kmGpsAcumulado: 0
+  };
+  state.metaAtingidaAlgumDia = false;
+  persist();
+  closeModal();
+  iniciarRastreioGPS();
+  toast('Dia iniciado às '+state.diaAtual.horaInicio);
+}
+
+function openFinalizarDia(){ ui.modal='finalizarDia'; render(); }
+function renderFinalizarDiaModal(){
+  var html = '<div class="row between"><div class="ef-modal-title">Finalizar dia</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
+  html += '<div class="muted" style="margin-bottom:14px;">Encerrando às '+nowTimeStr()+'</div>';
+  html += '<div class="ef-field"><span class="ef-field-label">KM final (opcional)</span><input type="number" inputmode="decimal" id="ef-km-final" placeholder="'+(state.diaAtual.kmInicial!=null?'Ex: '+(state.diaAtual.kmInicial+10):'Ex: 12470')+'"></div>';
+  html += '<button class="btn btn-success btn-block" onclick="EF.confirmFinalizarDia()">Finalizar e ver resumo</button>';
+  return html;
+}
+function confirmFinalizarDia(){
+  var kmFinalRaw = document.getElementById('ef-km-final').value;
+  var kmFinal = kmFinalRaw!=='' ? parseFloat(kmFinalRaw) : null;
+  var horaFim = nowTimeStr();
+  var d = state.diaAtual;
+  var s = statsForDate(d.data);
+  var tempoMin = minutesBetween(d.horaInicio, horaFim);
+  var kmRodadosManual = (d.kmInicial!=null && kmFinal!=null) ? (kmFinal-d.kmInicial) : null;
+  var resumo = {
+    id: d.id, data: d.data, horaInicio: d.horaInicio, horaFim: horaFim,
+    kmInicial: d.kmInicial, kmFinal: kmFinal, combustivelInicial: d.combustivelInicial,
+    entregasCount: s.count, faturamento: s.faturamento, despesas: s.despesas, lucro: s.lucro,
+    kmRodados: kmRodadosManual,
+    kmGpsEstimado: d.kmGpsAcumulado || 0,
+    tempoTrabalhadoMin: tempoMin
+  };
+  pararRastreioGPS();
+  state.diasFinalizados.push(resumo);
+  state.diaAtual = null;
+  persist();
+  checkAchievements();
+  ui.modal = 'resumoDia';
+  ui.modalData = resumo;
+  render();
+}
+function renderResumoDiaModal(r){
+  var mediaEntrega = r.entregasCount ? (r.faturamento/r.entregasCount) : 0;
+  var kmParaCusto = r.kmRodados!=null ? r.kmRodados : (r.kmGpsEstimado>0.1 ? r.kmGpsEstimado : null);
+  var html = '<div class="row between"><div class="ef-modal-title">Resumo do dia</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
+  html += '<div class="card">';
+  html += rowStat('Entregas', r.entregasCount);
+  html += rowStat('Faturamento', formatBRL(r.faturamento), 'var(--success)');
+  html += rowStat('Despesas', formatBRL(r.despesas), 'var(--danger)');
+  html += rowStat('Lucro', formatBRL(r.lucro), 'var(--accent)');
+  if(r.kmRodados!=null){
+    html += rowStat('KM rodados (odômetro)', formatKm(r.kmRodados));
+  } else if(r.kmGpsEstimado>0.1){
+    html += rowStat('KM rodados (estimado por GPS)', formatKm(r.kmGpsEstimado));
+  }
+  html += rowStat('Tempo trabalhado', fmtDuracao(r.tempoTrabalhadoMin));
+  html += rowStat('Média por entrega', formatBRL(mediaEntrega));
+  if(kmParaCusto!=null && state.config.custoPorKm){
+    html += '<div class="ef-limitation">Custo estimado do veículo (KM × custo/km): '+formatBRL(kmParaCusto*state.config.custoPorKm)+'. Esse valor é uma estimativa e não foi somado às despesas reais.</div>';
+  }
+  html += '</div>';
+  html += '<button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="EF.closeModal()">Concluir</button>';
+  return html;
+}
+function rowStat(label, value, color){
+  return '<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--border);"><span class="muted">'+label+'</span><span style="font-weight:800;'+(color?'color:'+color+';':'')+'">'+value+'</span></div>';
+}
+
+/* ---------------- historico ---------------- */
+function renderHistorico(){
+  var html = '<div class="ef-section-title" style="margin-top:4px;">Histórico de entregas</div>';
+  html += '<input id="ef-busca" placeholder="Buscar por cliente, valor ou data" value="'+escapeHtml(ui.historicoBusca)+'" oninput="EF.onBuscaInput(this.value)" style="margin-bottom:10px;">';
+
+  var filtros = [
+    {id:'hoje', label:'Hoje'}, {id:'ontem', label:'Ontem'}, {id:'semana', label:'Esta semana'},
+    {id:'mes', label:'Este mês'}, {id:'mesAnterior', label:'Mês anterior'}, {id:'todos', label:'Todos'}
+  ];
+  html += '<div class="ef-filter-row">' + filtros.map(function(f){
+    return '<button class="chip'+(ui.historicoFiltro===f.id?' selected':'')+'" onclick="EF.setFiltro(\''+f.id+'\')">'+f.label+'</button>';
+  }).join('') + '</div>';
+
+  html += '<div class="ef-segment" style="margin-bottom:14px;">' +
+    '<button class="'+(ui.historicoView==='entrega'?'active':'')+'" onclick="EF.setHistoricoView(\'entrega\')">Por entrega</button>' +
+    '<button class="'+(ui.historicoView==='cliente'?'active':'')+'" onclick="EF.setHistoricoView(\'cliente\')">Por cliente</button>' +
+    '</div>';
+
+  var list = filterEntregas();
+
+  if(!list.length){
+    html += '<div class="ef-empty"><div class="big">📦</div>Nenhuma entrega encontrada.<br>Toque em "+ Adicionar entrega" para começar.</div>';
+    document.getElementById('ef-scroll').innerHTML = html;
+    return;
+  }
+
+  if(ui.historicoView==='cliente'){
+    _histGroups = groupByCliente(list);
+    html += _histGroups.map(function(g, i){
+      return '<div class="ef-delivery-card" onclick="EF.filtrarPorClienteIdx('+i+')">' +
+        '<div class="ef-thumb-placeholder">👤</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="row between"><span style="font-weight:700;">'+escapeHtml(g.nome)+'</span><span style="font-weight:800;color:var(--success);">'+formatBRL(g.total)+'</span></div>' +
+          '<div class="muted">'+g.count+' entrega'+(g.count>1?'s':'')+' • '+formatBreakdown(g.entregas)+'</div>' +
+        '</div></div>';
+    }).join('');
+    var totalGeralClientes = _histGroups.reduce(function(a,g){return a+g.total;},0);
+    var totalEntregasClientes = _histGroups.reduce(function(a,g){return a+g.count;},0);
+    if(_histGroups.length){
+      html += '<div class="card" style="margin-top:6px;border-color:var(--primary);">' +
+        '<div class="row between"><strong>Total</strong><span class="muted">'+totalEntregasClientes+' entrega'+(totalEntregasClientes>1?'s':'')+'</span></div>' +
+        '<div class="row between" style="margin-top:6px;"><span class="muted">Soma de todos os clientes</span><span style="font-weight:800;font-size:17px;color:var(--success);">'+formatBRL(totalGeralClientes)+'</span></div>' +
+        '</div>';
+    }
+    document.getElementById('ef-scroll').innerHTML = html;
+    return;
+  }
+
+  list.sort(function(a,b){return b.timestamp-a.timestamp;});
+  html += list.map(function(e){
+    return '<div class="ef-delivery-card" onclick="EF.openEntregaDetalhe(\''+e.id+'\')">' +
+      '<div class="ef-thumb-placeholder" id="thumb-'+e.id+'">'+(e.temFoto?'':'👤')+'</div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div class="row between"><span style="font-weight:700;">'+ (e.cliente? escapeHtml(e.cliente) : 'Cliente não informado') +'</span><span style="font-weight:800;color:var(--success);">'+formatBRL(e.valor)+'</span></div>' +
+        '<div class="muted">'+formatDateBR(e.data)+' • '+e.horario+'</div>' +
+      '</div></div>';
+  }).join('');
+  document.getElementById('ef-scroll').innerHTML = html;
+
+  list.filter(function(e){return e.temFoto;}).forEach(function(e){
+    getFoto(e.id).then(function(url){
+      var el = document.getElementById('thumb-'+e.id);
+      if(el && url){ el.outerHTML = '<img class="ef-thumb" src="'+url+'">'; }
+    });
+  });
+}
+function onBuscaInput(v){ ui.historicoBusca = v; renderHistorico(); }
+function setFiltro(f){ ui.historicoFiltro = f; render(); }
+function setHistoricoView(v){ ui.historicoView = v; render(); }
+function groupByCliente(list){
+  var map = {};
+  list.forEach(function(e){
+    var nome = (e.cliente && e.cliente.trim()) ? e.cliente.trim() : 'Cliente não informado';
+    var key = nome.toLowerCase();
+    if(!map[key]) map[key] = {nome:nome, entregas:[]};
+    map[key].entregas.push(e);
+  });
+  return Object.keys(map).map(function(k){
+    var g = map[k];
+    return {nome:g.nome, count:g.entregas.length, total:sumValor(g.entregas), entregas:g.entregas};
+  }).sort(function(a,b){ return b.total-a.total; });
+}
+function formatBreakdown(entregas){
+  var counts = {};
+  entregas.forEach(function(e){ counts[e.valor] = (counts[e.valor]||0)+1; });
+  var chaves = Object.keys(counts).map(Number).sort(function(a,b){return b-a;});
+  return chaves.map(function(v){ return counts[v]+'x '+formatBRL(v); }).join(' + ');
+}
+function filtrarPorClienteIdx(i){
+  var g = _histGroups[i];
+  if(!g) return;
+  ui.historicoBusca = (g.nome==='Cliente não informado') ? '' : g.nome;
+  ui.historicoView = 'entrega';
+  render();
+}
+function filterEntregas(){
+  var arr = state.entregas.slice();
+  var today = todayISO();
+  var now = new Date();
+  if(ui.historicoFiltro==='hoje') arr = arr.filter(function(e){return e.data===today;});
+  else if(ui.historicoFiltro==='ontem'){
+    var y = new Date(); y.setDate(y.getDate()-1);
+    var yStr = y.getFullYear()+'-'+pad(y.getMonth()+1)+'-'+pad(y.getDate());
+    arr = arr.filter(function(e){return e.data===yStr;});
+  } else if(ui.historicoFiltro==='semana'){
+    var week = last7Days();
+    arr = arr.filter(function(e){return week.indexOf(e.data)!==-1;});
+  } else if(ui.historicoFiltro==='mes'){
+    arr = arr.filter(function(e){ var d=new Date(e.data+'T12:00:00'); return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); });
+  } else if(ui.historicoFiltro==='mesAnterior'){
+    var pm = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    arr = arr.filter(function(e){ var d=new Date(e.data+'T12:00:00'); return d.getFullYear()===pm.getFullYear() && d.getMonth()===pm.getMonth(); });
+  }
+  var q = ui.historicoBusca.trim().toLowerCase();
+  if(q){
+    arr = arr.filter(function(e){
+      return (e.cliente||'').toLowerCase().indexOf(q)!==-1 ||
+        String(e.valor).indexOf(q)!==-1 ||
+        formatDateBR(e.data).indexOf(q)!==-1;
+    });
+  }
+  return arr;
+}
+
+/* ---------------- despesas ---------------- */
+function renderDespesas(){
+  var today = todayISO();
+  var totalHoje = sumValor(despesasDoDia(today));
+  var totalGeral = sumValor(state.despesas);
+  var html = '<div class="ef-section-title" style="margin-top:4px;">Despesas</div>';
+  html += '<div class="row" style="gap:10px;">' +
+    '<div class="card" style="flex:1;"><div class="label">Hoje</div><div class="num" style="font-size:20px;color:var(--danger);">'+formatBRL(totalHoje)+'</div></div>' +
+    '<div class="card" style="flex:1;"><div class="label">Total geral</div><div class="num" style="font-size:20px;">'+formatBRL(totalGeral)+'</div></div>' +
+    '</div>';
+  html += '<button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="EF.openAddDespesa()">+ Adicionar despesa</button>';
+
+  var list = state.despesas.slice().sort(function(a,b){return b.timestamp-a.timestamp;});
+  html += '<div style="margin-top:16px;">';
+  if(!list.length){
+    html += '<div class="ef-empty"><div class="big">💸</div>Nenhuma despesa registrada ainda.</div>';
+  } else {
+    list.forEach(function(d){
+      var cat = CATEGORIAS.find(function(c){return c.id===d.categoria;}) || CATEGORIAS[5];
+      html += '<div class="ef-expense-card" onclick="EF.openEditDespesa(\''+d.id+'\')">' +
+        '<div class="ef-thumb-placeholder">'+cat.icon+'</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="row between"><span style="font-weight:700;">'+cat.label+'</span><span style="font-weight:800;color:var(--danger);">'+formatBRL(d.valor)+'</span></div>' +
+          '<div class="muted">'+formatDateBR(d.data)+' • '+d.horario+(d.observacao?' • '+escapeHtml(d.observacao):'')+'</div>' +
+        '</div></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('ef-scroll').innerHTML = html;
+}
+
+function openAddDespesa(){ pending = {categoria:'combustivel', editId:null}; ui.modal='despesa'; render(); }
+function openEditDespesa(id){
+  var d = state.despesas.find(function(x){return x.id===id;});
+  if(!d) return;
+  pending = {categoria:d.categoria, editId:id};
+  ui.modal='despesa'; render();
+}
+function renderDespesaModal(){
+  var isEdit = !!pending.editId;
+  var existing = isEdit ? state.despesas.find(function(x){return x.id===pending.editId;}) : null;
+  var html = '<div class="row between"><div class="ef-modal-title">'+(isEdit?'Editar despesa':'Adicionar despesa')+'</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
+  html += '<div class="ef-field"><span class="ef-field-label">Categoria</span><div class="chip-row">' +
+    CATEGORIAS.map(function(c){
+      return '<button type="button" class="chip'+(pending.categoria===c.id?' selected':'')+'" onclick="EF.selectCategoriaChip(this,\''+c.id+'\')">'+c.icon+' '+c.label+'</button>';
+    }).join('') + '</div></div>';
+  html += '<div class="ef-field"><span class="ef-field-label">Valor</span><input type="number" inputmode="decimal" id="ef-desp-valor" placeholder="0,00" value="'+(existing?existing.valor:'')+'"></div>';
+  html += '<div class="ef-field"><span class="ef-field-label">Observação (opcional)</span><textarea id="ef-desp-obs" rows="2" placeholder="Alguma observação...">'+escapeHtml(existing?existing.observacao:'')+'</textarea></div>';
+  html += '<button class="btn btn-success btn-block" onclick="EF.saveDespesa()">Salvar despesa</button>';
+  if(isEdit){
+    html += '<button class="btn btn-danger btn-block" style="margin-top:10px;" onclick="EF.deleteDespesa(\''+pending.editId+'\')">Excluir despesa</button>';
+  }
+  return html;
+}
+function selectCategoriaChip(el, id){
+  pending.categoria = id;
+  var parent = el.parentElement;
+  Array.prototype.forEach.call(parent.querySelectorAll('.chip'), function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+function saveDespesa(){
+  var valor = parseFloat((document.getElementById('ef-desp-valor').value||'0').replace(',','.'));
+  if(!valor || valor<=0){ toast('Informe um valor válido'); return; }
+  var obs = document.getElementById('ef-desp-obs').value || '';
+  if(pending.editId){
+    var d = state.despesas.find(function(x){return x.id===pending.editId;});
+    d.valor = valor; d.categoria = pending.categoria; d.observacao = obs;
+    toast('Despesa atualizada ✓');
+  } else {
+    state.despesas.push({id:uid(), categoria:pending.categoria, valor:valor, observacao:obs, data:todayISO(), horario:nowTimeStr(), timestamp:Date.now()});
+    toast('Despesa registrada ✓');
+  }
+  persist();
+  closeModal();
+}
+function deleteDespesa(id){
+  openConfirm('Excluir esta despesa?', 'Essa ação não pode ser desfeita.', function(){
+    state.despesas = state.despesas.filter(function(x){return x.id!==id;});
+    persist();
+    closeModal();
+    toast('Despesa excluída');
+  });
+}
+
+/* ---------------- resumos ---------------- */
+function renderResumos(){
+  var html = '<div class="ef-section-title" style="margin-top:4px;">Resumos</div>';
+  html += '<div class="ef-segment"><button class="'+(ui.resumoTab==='semana'?'active':'')+'" onclick="EF.setResumoTab(\'semana\')">Semana</button><button class="'+(ui.resumoTab==='mes'?'active':'')+'" onclick="EF.setResumoTab(\'mes\')">Mês</button></div>';
+
+  if(ui.resumoTab==='semana'){
+    var days = last7Days();
+    var dayStats = days.map(statsForDate);
+    var maxFat = Math.max.apply(null, dayStats.map(function(d){return d.faturamento;}).concat([1]));
+    html += '<div class="card" style="margin-top:14px;"><div class="label">Faturamento por dia</div>';
+    html += '<div class="ef-week-chart">' + dayStats.map(function(d){
+      var h = Math.max(3, Math.round((d.faturamento/maxFat)*100));
+      return '<div class="ef-week-bar-wrap"><div class="ef-week-bar" style="height:'+h+'px;"></div><div class="ef-week-bar-label">'+weekdayShort(d.data)+'</div></div>';
+    }).join('') + '</div></div>';
+
+    html += '<div class="ef-section-title">Detalhamento</div>';
+    dayStats.slice().reverse().forEach(function(d){
+      html += '<div class="card" style="margin-bottom:10px;">' +
+        '<div class="row between"><strong>'+weekdayShort(d.data)+', '+formatDateBR(d.data)+'</strong><span class="muted">'+d.count+' entregas</span></div>' +
+        '<div class="row between" style="margin-top:8px;"><span class="muted">Faturamento</span><span style="color:var(--success);font-weight:700;">'+formatBRL(d.faturamento)+'</span></div>' +
+        '<div class="row between"><span class="muted">Despesas</span><span style="color:var(--danger);font-weight:700;">'+formatBRL(d.despesas)+'</span></div>' +
+        '<div class="row between"><span class="muted">Lucro</span><span style="font-weight:700;">'+formatBRL(d.lucro)+'</span></div>' +
+        (d.km!=null ? '<div class="row between"><span class="muted">KM rodados</span><span style="font-weight:700;">'+formatKm(d.km)+'</span></div>' : '') +
+        '</div>';
+    });
+
+    var totalEnt = dayStats.reduce(function(a,d){return a+d.count;},0);
+    var totalFat = dayStats.reduce(function(a,d){return a+d.faturamento;},0);
+    var totalDesp = dayStats.reduce(function(a,d){return a+d.despesas;},0);
+    var totalKm = dayStats.reduce(function(a,d){return a+(d.km||0);},0);
+    html += '<div class="ef-section-title">Total da semana</div>';
+    html += '<div class="card">' +
+      rowStat('Entregas', totalEnt) + rowStat('Faturamento', formatBRL(totalFat), 'var(--success)') +
+      rowStat('Despesas', formatBRL(totalDesp), 'var(--danger)') + rowStat('Lucro', formatBRL(totalFat-totalDesp)) +
+      (totalKm>0 ? rowStat('KM rodados', formatKm(totalKm)) + rowStat('R$ por KM', formatBRL(totalFat/totalKm)) : '') +
+      '</div>';
+  } else {
+    var m = statsMonth();
+    html += '<div class="card" style="margin-top:14px;">' +
+      rowStat('Total de entregas', m.count) +
+      rowStat('Faturamento', formatBRL(m.faturamento), 'var(--success)') +
+      rowStat('Despesas', formatBRL(m.despesas), 'var(--danger)') +
+      rowStat('Lucro', formatBRL(m.lucro)) +
+      rowStat('KM rodados', formatKm(m.km)) +
+      (m.reaisPorKm!=null ? rowStat('R$ por KM', formatBRL(m.reaisPorKm)) : '') +
+      rowStat('Média diária', formatBRL(m.mediaDiaria)) +
+      rowStat('Média por entrega', formatBRL(m.mediaEntrega)) +
+      (m.melhorDia ? rowStat('Melhor dia', formatDateBR(m.melhorDia)+' ('+formatBRL(m.melhorValor)+')') : '') +
+      '</div>';
+  }
+
+  html += '<div class="ef-section-title">Conquistas</div>';
+  html += '<div class="ef-achv-grid">' + ACHIEVEMENTS.map(function(a){
+    var unlocked = state.conquistas.some(function(c){return c.id===a.id;});
+    return '<div class="ef-achv'+(unlocked?' unlocked':'')+'"><div class="ic">'+a.icon+'</div><div class="lbl">'+a.label+'</div></div>';
+  }).join('') + '</div>';
+
+  document.getElementById('ef-scroll').innerHTML = html;
+}
+function setResumoTab(t){ ui.resumoTab = t; render(); }
+
+/* ---------------- config ---------------- */
+function renderConfig(){
+  var c = state.config;
+  var html = '<div class="ef-section-title" style="margin-top:4px;">Ajustes</div>';
+
+  html += '<div class="card"><div class="label" style="margin-bottom:6px;">Valores rápidos</div>';
+  c.valoresRapidos.forEach(function(v, i){
+    html += '<div class="ef-config-row"><span>Valor '+(i+1)+'</span><input class="ef-mini-input" type="number" value="'+v+'" onchange="EF.updateValorRapido('+i+',this.value)"></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="card" style="margin-top:12px;">' +
+    '<div class="ef-config-row"><span>Valor padrão</span><input class="ef-mini-input" type="number" value="'+c.valorPadrao+'" onchange="EF.updateConfigNum(\'valorPadrao\',this.value)"></div>' +
+    '<div class="ef-config-row"><span>Custo por KM</span><input class="ef-mini-input" type="number" step="0.01" value="'+c.custoPorKm+'" onchange="EF.updateConfigNum(\'custoPorKm\',this.value)"></div>' +
+    '<div class="ef-config-row"><span>Meta de entregas/dia</span><input class="ef-mini-input" type="number" value="'+c.metaEntregas+'" onchange="EF.updateConfigNum(\'metaEntregas\',this.value)"></div>' +
+    '<div class="ef-config-row"><span>Meta de ganhos/dia</span><input class="ef-mini-input" type="number" value="'+c.metaGanhos+'" onchange="EF.updateConfigNum(\'metaGanhos\',this.value)"></div>' +
+    '</div>';
+
+  html += '<div class="card" style="margin-top:12px;"><div class="label" style="margin-bottom:8px;">Tema</div>' +
+    '<div class="ef-segment">' +
+    '<button class="'+(c.tema==='light'?'active':'')+'" onclick="EF.setTema(\'light\')">Claro</button>' +
+    '<button class="'+(c.tema==='dark'?'active':'')+'" onclick="EF.setTema(\'dark\')">Escuro</button>' +
+    '<button class="'+(c.tema==='auto'?'active':'')+'" onclick="EF.setTema(\'auto\')">Automático</button>' +
+    '</div></div>';
+
+  html += '<div class="ef-section-title">Backup e dados</div>';
+  html += '<div class="card">' +
+    '<button class="btn btn-primary btn-block" onclick="EF.exportBackupJSON()">Exportar backup completo (com fotos)</button>' +
+    '<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="document.getElementById(\'ef-import-input\').click()">Importar backup</button>' +
+    '<input type="file" accept="application/json,.json" id="ef-import-input" style="display:none" onchange="EF.onImportFile(this)">' +
+    '<div class="ef-limitation">Se o app estiver salvando os dados de forma instável (ex: some ao fechar), use "Adicionar à tela inicial" no menu do navegador para fixar o endereço do app, e faça backups regulares aqui como reforço.</div>' +
+    '<button class="btn btn-ghost btn-block" style="margin-top:14px;" onclick="EF.exportCSV()">Exportar CSV (entregas e despesas)</button>' +
+    '<button class="btn btn-ghost btn-block" style="margin-top:10px;opacity:.6;" disabled>Exportar Excel (em breve)</button>' +
+    '<button class="btn btn-ghost btn-block" style="margin-top:10px;opacity:.6;" disabled>Exportar PDF (em breve)</button>' +
+    '<div class="ef-limitation">Exportação em Excel e PDF requer bibliotecas que não estão disponíveis neste ambiente. A estrutura de dados já está pronta para isso ser adicionado depois. Por enquanto, a exportação em CSV funciona por completo e pode ser aberta no Excel/Sheets.</div>' +
+    '</div>';
+
+  html += '<div class="ef-section-title">Sobre</div>';
+  html += '<div class="card muted" style="font-size:13px;line-height:1.6;">Controle Diário salva todos os dados neste dispositivo/conta, incluindo fotos, e funciona mesmo sem internet — nenhuma entrega depende de conexão para ser registrada.' +
+    '<div style="margin-top:12px;"><a href="privacidade.html" target="_blank" style="color:var(--primary);font-weight:700;text-decoration:none;">Política de Privacidade</a> &nbsp;•&nbsp; <a href="termos.html" target="_blank" style="color:var(--primary);font-weight:700;text-decoration:none;">Termos de Uso</a></div>' +
+    '</div>';
+
+  document.getElementById('ef-scroll').innerHTML = html;
+}
+function updateValorRapido(i, v){
+  var num = parseFloat(v); if(isNaN(num)||num<=0) return;
+  state.config.valoresRapidos[i] = num;
+  persist(); render();
+}
+function updateConfigNum(key, v){
+  var num = parseFloat(v); if(isNaN(num)||num<0) return;
+  state.config[key] = num;
+  persist(); render();
+}
+function setTema(t){ state.config.tema = t; persist(); render(); }
+
+function exportBackupJSON(){
+  var entregasComFoto = state.entregas.filter(function(e){ return e.temFoto; });
+  Promise.all(entregasComFoto.map(function(e){ return getFoto(e.id).then(function(url){ return {id:e.id, url:url}; }); }))
+    .then(function(fotosArr){
+      var fotos = {};
+      fotosArr.forEach(function(f){ if(f.url) fotos[f.id] = f.url; });
+      var backup = {
+        app: 'entrega-facil', versao: 1, exportadoEm: new Date().toISOString(),
+        dados: {
+          entregas: state.entregas, despesas: state.despesas, diaAtual: state.diaAtual,
+          diasFinalizados: state.diasFinalizados, config: state.config,
+          conquistas: state.conquistas, metaAtingidaAlgumDia: state.metaAtingidaAlgumDia,
+          clientes: state.clientes
+        },
+        fotos: fotos
+      };
+      var blob = new Blob([JSON.stringify(backup)], {type:'application/json'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'entrega-facil-backup-'+todayISO()+'.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast('Backup exportado ✓');
+    }).catch(function(e){
+      console.warn('falha ao exportar backup', e);
+      toast('⚠️ Não foi possível gerar o backup agora.');
+    });
+}
+
+function onImportFile(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var backup;
+    try { backup = JSON.parse(e.target.result); }
+    catch(err){ toast('⚠️ Arquivo de backup inválido.'); input.value=''; return; }
+    if(!backup || !backup.dados){ toast('⚠️ Arquivo de backup inválido.'); input.value=''; return; }
+    openConfirm('Importar backup?', 'Isso vai substituir todos os dados atuais do app pelos dados desse arquivo. Essa ação não pode ser desfeita.', function(){
+      restaurarBackup(backup);
+    });
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function restaurarBackup(backup){
+  var d = backup.dados;
+  state.entregas = d.entregas || [];
+  state.despesas = d.despesas || [];
+  state.diaAtual = d.diaAtual || null;
+  state.diasFinalizados = d.diasFinalizados || [];
+  state.config = d.config ? Object.assign({}, DEFAULT_CONFIG, d.config) : JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  state.conquistas = d.conquistas || [];
+  state.metaAtingidaAlgumDia = d.metaAtingidaAlgumDia || false;
+  state.clientes = d.clientes || [];
+  var fotos = backup.fotos || {};
+  var ids = Object.keys(fotos);
+  Promise.all(ids.map(function(id){ return setFoto(id, fotos[id]); }))
+    .then(function(){ return persist(); })
+    .then(function(){
+      closeModal();
+      render();
+      toast('Backup restaurado ✓');
+    });
+}
+
+function exportCSV(){
+  var lines = ['tipo,data,horario,valor,categoria_ou_cliente,observacao'];
+  state.entregas.forEach(function(e){
+    lines.push(['entrega', e.data, e.horario, e.valor.toFixed(2), csvSafe(e.cliente||''), csvSafe(e.observacao||'')].join(','));
+  });
+  state.despesas.forEach(function(d){
+    lines.push(['despesa', d.data, d.horario, d.valor.toFixed(2), csvSafe(d.categoria), csvSafe(d.observacao||'')].join(','));
+  });
+  var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'entrega-facil-dados.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('CSV exportado ✓');
+}
+function csvSafe(s){ return '"' + String(s).replace(/"/g,'""') + '"'; }
+
+/* ---------------- modal shell ---------------- */
+function renderModal(){
+  var wrap = document.getElementById('ef-modal-wrap');
+  if(!ui.modal){ wrap.innerHTML=''; return; }
+  var inner = '';
+  if(ui.modal==='entrega') inner = renderEntregaModal();
+  else if(ui.modal==='entregaDetalhe') inner = renderEntregaDetalhe(ui.modalData);
+  else if(ui.modal==='despesa') inner = renderDespesaModal();
+  else if(ui.modal==='iniciarDia') inner = renderIniciarDiaModal();
+  else if(ui.modal==='finalizarDia') inner = renderFinalizarDiaModal();
+  else if(ui.modal==='resumoDia') inner = renderResumoDiaModal(ui.modalData);
+  else if(ui.modal==='confirm') inner = renderConfirmModal();
+
+  wrap.innerHTML = '<div id="ef-modal-overlay" onclick="EF.onOverlayClick(event)"><div id="ef-modal-sheet">'+inner+'</div></div>';
+}
+function onOverlayClick(ev){ if(ev.target.id==='ef-modal-overlay') closeModal(); }
+function closeModal(){ ui.modal=null; ui.modalData=null; pending={}; render(); }
+function setTab(t){ ui.tab=t; render(); }
+
+/* ---------------- confirmação (substitui o confirm() nativo do navegador,
+   que fica bloqueado dentro do visualizador de artefatos) ---------------- */
+var pendingConfirm = null;
+function openConfirm(title, subtitle, onConfirmCb){
+  pendingConfirm = {title:title, subtitle:subtitle, onConfirm:onConfirmCb, prevModal:ui.modal, prevModalData:ui.modalData};
+  ui.modal = 'confirm';
+  render();
+}
+function renderConfirmModal(){
+  var c = pendingConfirm;
+  return '<div class="ef-modal-title">'+escapeHtml(c.title)+'</div>' +
+    '<div class="muted" style="margin-bottom:20px;">'+escapeHtml(c.subtitle)+'</div>' +
+    '<div class="row" style="gap:10px;">' +
+    '<button class="btn btn-outline" style="flex:1" onclick="EF.cancelConfirm()">Cancelar</button>' +
+    '<button class="btn btn-danger" style="flex:1" onclick="EF.runConfirm()">Excluir</button>' +
+    '</div>';
+}
+function cancelConfirm(){
+  if(!pendingConfirm){ closeModal(); return; }
+  ui.modal = pendingConfirm.prevModal;
+  ui.modalData = pendingConfirm.prevModalData;
+  pendingConfirm = null;
+  render();
+}
+function runConfirm(){
+  if(!pendingConfirm) return;
+  var cb = pendingConfirm.onConfirm;
+  pendingConfirm = null;
+  cb();
+}
+
+/* ---------------- boot ---------------- */
+function boot(){
+  document.getElementById('ef-scroll').innerHTML = '<div class="ef-empty"><div class="big">🚴</div>Carregando seus dados...</div>';
+  loadAll().then(function(){
+    render();
+    if(state.diaAtual){ iniciarRastreioGPS(); } // retoma o rastreio de KM se o dia já estava em andamento
+  }).catch(function(err){
+    console.error(err);
+    document.getElementById('ef-scroll').innerHTML = '<div class="ef-empty">Não foi possível carregar os dados salvos. Tente reabrir o app.</div>';
+  });
+}
+
+window.EF = {
+  setTab: setTab, openAddEntrega: openAddEntrega, quickAdd: quickAdd,
+  selectValorChip: selectValorChip, selectValorOutro: selectValorOutro, onCustomValorInput: onCustomValorInput,
+  onPhotoChosen: onPhotoChosen, removePhoto: removePhoto, saveEntrega: saveEntrega,
+  openEditEntrega: openEditEntrega, openEntregaDetalhe: openEntregaDetalhe, deleteEntrega: deleteEntrega,
+  openIniciarDia: openIniciarDia, confirmIniciarDia: confirmIniciarDia,
+  openFinalizarDia: openFinalizarDia, confirmFinalizarDia: confirmFinalizarDia,
+  onBuscaInput: onBuscaInput, setFiltro: setFiltro,
+  openAddDespesa: openAddDespesa, openEditDespesa: openEditDespesa, selectCategoriaChip: selectCategoriaChip,
+  saveDespesa: saveDespesa, deleteDespesa: deleteDespesa,
+  setResumoTab: setResumoTab,
+  updateValorRapido: updateValorRapido, updateConfigNum: updateConfigNum, setTema: setTema, exportCSV: exportCSV,
+  exportBackupJSON: exportBackupJSON, onImportFile: onImportFile,
+  closeModal: closeModal, onOverlayClick: onOverlayClick, cycleTheme: cycleTheme,
+  cancelConfirm: cancelConfirm, runConfirm: runConfirm,
+  onClienteInput: onClienteInput, selectClienteChip: selectClienteChip,
+  setHistoricoView: setHistoricoView, filtrarPorClienteIdx: filtrarPorClienteIdx
+};
+
+boot();
+})();
+</script>
+</div>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('service-worker.js').catch(function(e){ console.warn('sw falhou', e); });
+  });
+}
+</script>
+</body>
+</html>

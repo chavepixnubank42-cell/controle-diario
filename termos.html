@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Termos de Uso — Controle Diário</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif;max-width:720px;margin:0 auto;padding:32px 20px 60px;color:#16202B;line-height:1.65;background:#F5F6F8;}
+  h1{font-size:26px;margin-bottom:4px;}
+  .sub{color:#6B7686;font-size:14px;margin-bottom:32px;}
+  h2{font-size:19px;margin-top:34px;}
+  p,li{font-size:15.5px;}
+  ul{padding-left:20px;}
+  .contato{background:#EEF1F5;border-radius:14px;padding:18px 20px;margin-top:32px;}
+  a{color:#2F6FED;}
+</style>
+</head>
+<body>
+  <h1>Termos de Uso</h1>
+  <div class="sub">Aplicativo Controle Diário — última atualização: <span id="data-atualizacao"></span></div>
+
+  <h2>1. Sobre o aplicativo</h2>
+  <p>Controle Diário é uma ferramenta pessoal de controle de entregas, ganhos, despesas e quilometragem, voltada para entregadores autônomos. O app não é um serviço de intermediação de entregas, não conecta você a clientes ou plataformas, e não processa pagamentos.</p>
+
+  <h2>2. Uso do aplicativo</h2>
+  <p>Você pode usar o app livremente para fins pessoais de organização financeira e operacional das suas entregas. Os cálculos de faturamento, lucro, metas e custo estimado por quilômetro são baseados exclusivamente nas informações que você mesmo insere, e servem apenas como apoio à sua gestão — não substituem aconselhamento contábil, fiscal ou financeiro profissional.</p>
+
+  <h2>3. Seus dados</h2>
+  <p>Todos os dados inseridos no app (entregas, despesas, clientes, fotos, configurações) ficam armazenados localmente no seu próprio dispositivo. Você é o único responsável por manter backups desses dados; recomendamos usar a função de exportação de backup do app regularmente. Perda de dados por desinstalação do app, troca ou formatação do aparelho, ou falha do dispositivo não é de nossa responsabilidade.</p>
+
+  <h2>4. Precisão das informações</h2>
+  <p>O contador automático de quilometragem usa a localização por GPS do aparelho e é uma estimativa, sujeita a variações conforme sinal de GPS, cobertura urbana e condições do aparelho. Para valores oficiais (ex: declarações fiscais), recomendamos o uso do odômetro do veículo, que também pode ser informado manualmente no app.</p>
+
+  <h2>5. Isenção de garantias</h2>
+  <p>O aplicativo é fornecido "como está", sem garantias de disponibilidade ininterrupta ou ausência de erros. Fazemos o possível para manter o app funcionando corretamente, mas não garantimos que ele estará livre de falhas a qualquer momento.</p>
+
+  <h2>6. Limitação de responsabilidade</h2>
+  <p>Não nos responsabilizamos por decisões financeiras, fiscais ou operacionais tomadas com base nos dados ou cálculos apresentados pelo aplicativo, nem por eventuais perdas decorrentes de indisponibilidade do app ou perda de dados armazenados localmente.</p>
+
+  <h2>7. Alterações nestes termos</h2>
+  <p>Estes termos podem ser atualizados. A data de "última atualização" no topo desta página refletirá qualquer alteração.</p>
+
+  <h2>8. Privacidade</h2>
+  <p>Para saber exatamente quais dados o app acessa e como são tratados, consulte a <a href="privacidade.html">Política de Privacidade</a>.</p>
+
+  <div class="contato">
+    <strong>Contato</strong><br>
+    Dúvidas sobre estes termos podem ser enviadas para: <strong>cadini.f.daniel@gmail.com</strong>
+  </div>
+
+  <script>
+    document.getElementById('data-atualizacao').textContent = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+  </script>
+</body>
+</html>

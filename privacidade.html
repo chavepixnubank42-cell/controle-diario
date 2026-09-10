@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Política de Privacidade — Controle Diário</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif;max-width:720px;margin:0 auto;padding:32px 20px 60px;color:#16202B;line-height:1.65;background:#F5F6F8;}
+  h1{font-size:26px;margin-bottom:4px;}
+  .sub{color:#6B7686;font-size:14px;margin-bottom:32px;}
+  h2{font-size:19px;margin-top:34px;color:#16202B;}
+  p,li{font-size:15.5px;}
+  ul{padding-left:20px;}
+  .box{background:#fff;border:1px solid #E2E6EC;border-radius:14px;padding:18px 20px;margin:16px 0;}
+  .contato{background:#EEF1F5;border-radius:14px;padding:18px 20px;margin-top:32px;}
+  a{color:#2F6FED;}
+</style>
+</head>
+<body>
+  <h1>Política de Privacidade</h1>
+  <div class="sub">Aplicativo Controle Diário — última atualização: <span id="data-atualizacao"></span></div>
+
+  <p>Esta política explica, de forma simples e direta, quais dados o aplicativo <strong>Controle Diário</strong> acessa, por quê, e o que acontece com eles.</p>
+
+  <h2>Resumo rápido</h2>
+  <div class="box">
+    <ul>
+      <li><strong>Todos os seus dados ficam salvos apenas no seu próprio celular.</strong> O app não tem servidor, não tem conta de usuário e não envia nada para a internet.</li>
+      <li>Não usamos anúncios, não usamos ferramentas de rastreamento/analytics de terceiros e não vendemos ou compartilhamos dados com ninguém.</li>
+      <li>Você pode apagar todos os seus dados a qualquer momento, direto no app.</li>
+    </ul>
+  </div>
+
+  <h2>Quais dados o app acessa e por quê</h2>
+
+  <p><strong>Localização (GPS)</strong> — usada apenas enquanto você tem um dia de trabalho ativo no app, para calcular automaticamente a quilometragem percorrida. Essa localização:</p>
+  <ul>
+    <li>É processada inteiramente no seu aparelho;</li>
+    <li>Nunca é enviada para nenhum servidor, nem armazenada como um histórico de rotas — o app guarda apenas a distância total calculada, não o trajeto;</li>
+    <li>É opcional: se você não conceder a permissão, o app continua funcionando normalmente, só não mostra o contador automático de KM (você pode digitar o KM manualmente).</li>
+  </ul>
+
+  <p><strong>Câmera e galeria de fotos</strong> — usadas apenas quando você opta por anexar uma foto a um registro de entrega. As fotos:</p>
+  <ul>
+    <li>Ficam salvas apenas no armazenamento local do seu celular;</li>
+    <li>Nunca são enviadas para a internet;</li>
+    <li>São excluídas automaticamente se você excluir a entrega correspondente.</li>
+  </ul>
+
+  <p><strong>Dados que você digita no app</strong> — nome de clientes, valores de entregas, despesas, metas, configurações. Tudo isso é armazenado apenas localmente no seu aparelho, da mesma forma que as fotos.</p>
+
+  <h2>Backup manual</h2>
+  <p>O app oferece uma opção de "Exportar backup" nas configurações, que gera um arquivo com os seus dados para você guardar onde quiser (por exemplo, no seu Google Drive). Esse arquivo é gerado e salvo pelo seu próprio celular — nós não temos acesso a ele.</p>
+
+  <h2>Compartilhamento de dados</h2>
+  <p>Não compartilhamos, vendemos ou transmitimos nenhum dado seu para terceiros, porque simplesmente não temos acesso a esses dados — eles nunca saem do seu aparelho.</p>
+
+  <h2>Exclusão de dados</h2>
+  <p>Você pode excluir entregas, despesas ou clientes individualmente dentro do app a qualquer momento. Para apagar todos os dados de uma vez, basta desinstalar o aplicativo do seu celular.</p>
+
+  <h2>Crianças</h2>
+  <p>Este aplicativo é destinado a entregadores maiores de idade e não foi desenvolvido para uso por crianças.</p>
+
+  <h2>Alterações nesta política</h2>
+  <p>Se esta política mudar no futuro, a data de "última atualização" no topo desta página será revisada.</p>
+
+  <div class="contato">
+    <strong>Contato</strong><br>
+    Dúvidas sobre esta política podem ser enviadas para: <strong>cadini.f.daniel@gmail.com</strong>
+  </div>
+
+  <script>
+    document.getElementById('data-atualizacao').textContent = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+  </script>
+</body>
+</html>
