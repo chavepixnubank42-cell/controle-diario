@@ -11,6 +11,9 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>html,body{margin:0;padding:0;background:#F5F6F8;}</style>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div id="ef-root">
@@ -226,6 +229,104 @@ var DEFAULT_CONFIG = {
   tema: 'auto'
 };
 
+/* ---------------- backup na nuvem (Firebase: login Google + Firestore) ----------------
+   As fotos NÃO vão para a nuvem (ficam só no aparelho) — só os dados de texto
+   (entregas, despesas, clientes, veículos, configurações etc). */
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCHgirW8Gh8vshZEeV-RLrTQBPOG1fc1x4",
+  authDomain: "controle-diario-5110a.firebaseapp.com",
+  projectId: "controle-diario-5110a",
+  storageBucket: "controle-diario-5110a.firebasestorage.app",
+  messagingSenderId: "359463135866",
+  appId: "1:359463135866:web:787d3d775654a0abd969c3"
+};
+var firebaseApp = null, firebaseAuth = null, firebaseDb = null, firebaseDisponivel = false;
+var usuarioNuvem = null; // {uid, nome, email, foto}
+
+function iniciarFirebase(){
+  try{
+    if(typeof firebase === 'undefined') return;
+    firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
+    firebaseAuth = firebase.auth();
+    firebaseDb = firebase.firestore();
+    firebaseDisponivel = true;
+    firebaseAuth.getRedirectResult().then(function(result){
+      if(result && result.user) onLoginNuvemSucesso(result.user);
+    }).catch(function(e){ console.warn('erro ao concluir login', e); });
+    firebaseAuth.onAuthStateChanged(function(user){
+      usuarioNuvem = user ? {uid:user.uid, nome:user.displayName||'', email:user.email||'', foto:user.photoURL||''} : null;
+      if(ui.tab==='config') render();
+    });
+  } catch(e){ console.warn('Firebase não pôde iniciar', e); }
+}
+function onLoginNuvemSucesso(user){
+  usuarioNuvem = {uid:user.uid, nome:user.displayName||'', email:user.email||'', foto:user.photoURL||''};
+  toast('Login feito ✓ Bem-vindo, '+ (usuarioNuvem.nome||usuarioNuvem.email));
+  render();
+}
+function fazerLoginGoogle(){
+  if(!firebaseDisponivel){ toast('⚠️ Serviço de nuvem indisponível no momento.'); return; }
+  var provider = new firebase.auth.GoogleAuthProvider();
+  firebaseAuth.signInWithRedirect(provider);
+}
+function sairDaNuvem(){
+  if(!firebaseDisponivel) return;
+  firebaseAuth.signOut().then(function(){
+    usuarioNuvem = null;
+    render();
+    toast('Você saiu da conta.');
+  });
+}
+function snapshotParaNuvem(){
+  return {
+    entregas: state.entregas, despesas: state.despesas, diaAtual: state.diaAtual,
+    diasFinalizados: state.diasFinalizados, config: state.config,
+    conquistas: state.conquistas, metaAtingidaAlgumDia: state.metaAtingidaAlgumDia,
+    clientes: state.clientes, veiculos: state.veiculos, veiculoAtivoId: state.veiculoAtivoId
+  };
+}
+function enviarBackupNuvem(){
+  if(!usuarioNuvem){ toast('Faça login primeiro.'); return; }
+  toast('Enviando backup para a nuvem...');
+  firebaseDb.collection('usuarios').doc(usuarioNuvem.uid).set({
+    dados: snapshotParaNuvem(),
+    atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    toast('☁️ Backup enviado para a nuvem ✓');
+  }).catch(function(e){
+    console.warn('falha ao enviar backup', e);
+    toast('⚠️ Não foi possível enviar o backup agora.');
+  });
+}
+function baixarBackupNuvem(){
+  if(!usuarioNuvem){ toast('Faça login primeiro.'); return; }
+  toast('Buscando backup na nuvem...');
+  firebaseDb.collection('usuarios').doc(usuarioNuvem.uid).get().then(function(doc){
+    if(!doc.exists){ toast('Nenhum backup encontrado na nuvem ainda.'); return; }
+    var dados = doc.data().dados;
+    openConfirm('Baixar backup da nuvem?', 'Isso vai substituir os dados atuais deste aparelho pelos dados salvos na nuvem (as fotos não são incluídas nesse backup). Essa ação não pode ser desfeita.', function(){
+      state.entregas = dados.entregas || [];
+      state.despesas = dados.despesas || [];
+      state.diaAtual = dados.diaAtual || null;
+      state.diasFinalizados = dados.diasFinalizados || [];
+      state.config = dados.config ? Object.assign({}, DEFAULT_CONFIG, dados.config) : JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      state.conquistas = dados.conquistas || [];
+      state.metaAtingidaAlgumDia = dados.metaAtingidaAlgumDia || false;
+      state.clientes = dados.clientes || [];
+      state.veiculos = dados.veiculos || [];
+      state.veiculoAtivoId = dados.veiculoAtivoId || null;
+      garantirVeiculoPadrao();
+      persist();
+      closeModal();
+      render();
+      toast('☁️ Dados restaurados da nuvem ✓');
+    });
+  }).catch(function(e){
+    console.warn('falha ao baixar backup', e);
+    toast('⚠️ Não foi possível buscar o backup agora.');
+  });
+}
+
 /* ---------------- state ---------------- */
 var state = {
   loaded: false,
@@ -236,7 +337,9 @@ var state = {
   config: JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
   conquistas: [],
   metaAtingidaAlgumDia: false,
-  clientes: [] // {id, nome, endereco, usos, ultimoUso}
+  clientes: [], // {id, nome, endereco, usos, ultimoUso}
+  veiculos: [], // {id, nome, placa, custoPorKm, kmTotalAcumulado, manutencoes:[{id,tipo,intervaloKm,kmUltima}]}
+  veiculoAtivoId: null
 };
 
 var ui = {
@@ -347,6 +450,7 @@ function loadAll(){
       state.conquistas = res[5] ? JSON.parse(res[5]) : [];
       state.metaAtingidaAlgumDia = res[6] ? JSON.parse(res[6]) : false;
       state.loaded = true;
+      garantirVeiculoPadrao();
       return persist(); // grava tudo já no novo formato unificado
     }
     return safeGet('ef_data').then(function(raw){
@@ -359,9 +463,29 @@ function loadAll(){
       state.conquistas = data.conquistas || [];
       state.metaAtingidaAlgumDia = data.metaAtingidaAlgumDia || false;
       state.clientes = data.clientes || [];
+      state.veiculos = data.veiculos || [];
+      state.veiculoAtivoId = data.veiculoAtivoId || null;
       state.loaded = true;
+      garantirVeiculoPadrao();
     });
   });
+}
+
+// Cria um veículo padrão automaticamente se o usuário ainda não tem nenhum
+// (migração suave: quem já usava o app antes dos veículos existirem não perde nada).
+function garantirVeiculoPadrao(){
+  if(state.veiculos.length===0){
+    var v = {
+      id: uid(), nome: 'Meu veículo', placa: '',
+      custoPorKm: state.config.custoPorKm,
+      kmTotalAcumulado: 0,
+      manutencoes: [{id: uid(), tipo: 'Troca de óleo', intervaloKm: 3000, kmUltima: 0}]
+    };
+    state.veiculos.push(v);
+    state.veiculoAtivoId = v.id;
+  } else if(!state.veiculoAtivoId || !findVeiculo(state.veiculoAtivoId)){
+    state.veiculoAtivoId = state.veiculos[0].id;
+  }
 }
 
 // Todas as gravações são combinadas numa única chave e enfileiradas,
@@ -395,7 +519,9 @@ function persist(){
     config: state.config,
     conquistas: state.conquistas,
     metaAtingidaAlgumDia: state.metaAtingidaAlgumDia,
-    clientes: state.clientes
+    clientes: state.clientes,
+    veiculos: state.veiculos,
+    veiculoAtivoId: state.veiculoAtivoId
   };
   saveQueue = saveQueue.then(function(){
     return setWithRetry('ef_data', JSON.stringify(snapshot));
@@ -668,6 +794,117 @@ function clientesFrequentes(limit){
     .slice(0, limit||6);
 }
 
+/* ---------------- veículos e manutenção ---------------- */
+function findVeiculo(id){ return state.veiculos.find(function(v){return v.id===id;}) || null; }
+function getVeiculoAtivo(){ return findVeiculo(state.veiculoAtivoId) || state.veiculos[0] || null; }
+
+function addKmAoVeiculo(veiculoId, km){
+  var v = findVeiculo(veiculoId);
+  if(v && km>0){ v.kmTotalAcumulado = (v.kmTotalAcumulado||0) + km; }
+}
+
+// Retorna as manutenções vencidas (ou perto de vencer) de um veículo
+function manutencoesStatus(veiculo){
+  if(!veiculo) return [];
+  return (veiculo.manutencoes||[]).map(function(m){
+    var desde = (veiculo.kmTotalAcumulado||0) - (m.kmUltima||0);
+    var pct = m.intervaloKm>0 ? Math.min(100, Math.round((desde/m.intervaloKm)*100)) : 0;
+    return {id:m.id, tipo:m.tipo, intervaloKm:m.intervaloKm, kmUltima:m.kmUltima, desde:desde, pct:pct, vencida: desde>=m.intervaloKm};
+  });
+}
+function manutencoesVencidas(veiculo){
+  return manutencoesStatus(veiculo).filter(function(m){ return m.vencida; });
+}
+
+function addVeiculo(nome, placa){
+  var v = {
+    id: uid(), nome: (nome||'Novo veículo').trim() || 'Novo veículo', placa: (placa||'').trim(),
+    custoPorKm: state.config.custoPorKm, kmTotalAcumulado: 0,
+    manutencoes: [{id: uid(), tipo:'Troca de óleo', intervaloKm:3000, kmUltima:0}]
+  };
+  state.veiculos.push(v);
+  persist();
+  return v;
+}
+function deleteVeiculo(id){
+  if(state.veiculos.length<=1){ toast('Você precisa manter pelo menos 1 veículo.'); return; }
+  state.veiculos = state.veiculos.filter(function(v){return v.id!==id;});
+  if(state.veiculoAtivoId===id) state.veiculoAtivoId = state.veiculos[0].id;
+  persist();
+}
+function setVeiculoAtivo(id){
+  state.veiculoAtivoId = id;
+  persist();
+  render();
+}
+function marcarManutencaoFeita(veiculoId, manutencaoId){
+  var v = findVeiculo(veiculoId);
+  if(!v) return;
+  var m = v.manutencoes.find(function(x){return x.id===manutencaoId;});
+  if(m){ m.kmUltima = v.kmTotalAcumulado||0; persist(); render(); toast('Manutenção marcada como feita ✓'); }
+}
+function addManutencao(veiculoId, tipo, intervaloKm){
+  var v = findVeiculo(veiculoId);
+  if(!v) return;
+  v.manutencoes.push({id:uid(), tipo:tipo, intervaloKm:intervaloKm, kmUltima: v.kmTotalAcumulado||0});
+  persist();
+  render();
+}
+function removeManutencao(veiculoId, manutencaoId){
+  var v = findVeiculo(veiculoId);
+  if(!v) return;
+  v.manutencoes = v.manutencoes.filter(function(m){return m.id!==manutencaoId;});
+  persist();
+  render();
+}
+
+function openAddVeiculo(){ ui.modal='veiculo'; render(); }
+function renderVeiculoModal(){
+  var html = '<div class="row between"><div class="ef-modal-title">Adicionar veículo</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
+  html += '<div class="ef-field"><span class="ef-field-label">Nome</span><input id="ef-veiculo-nome" placeholder="Ex: Honda CG 160, Carro do trabalho..."></div>';
+  html += '<div class="ef-field"><span class="ef-field-label">Placa (opcional)</span><input id="ef-veiculo-placa" placeholder="Ex: ABC-1234"></div>';
+  html += '<button class="btn btn-primary btn-block" onclick="EF.saveVeiculo()">Salvar veículo</button>';
+  return html;
+}
+function saveVeiculo(){
+  var nome = document.getElementById('ef-veiculo-nome').value;
+  var placa = document.getElementById('ef-veiculo-placa').value;
+  if(!nome.trim()){ toast('Informe um nome para o veículo'); return; }
+  addVeiculo(nome, placa);
+  closeModal();
+  toast('Veículo adicionado ✓');
+}
+
+function openAddManutencao(veiculoId){ pending = {veiculoId: veiculoId, tipo:'Troca de óleo', intervaloKm:3000}; ui.modal='manutencao'; render(); }
+function renderManutencaoModal(){
+  var presets = ['Troca de óleo', 'Troca de pneus', 'Revisão geral', 'Troca de filtro', 'Relação/corrente'];
+  var html = '<div class="row between"><div class="ef-modal-title">Adicionar manutenção</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
+  html += '<div class="ef-field"><span class="ef-field-label">Tipo</span><div class="chip-row">' +
+    presets.map(function(p){
+      return '<button type="button" class="chip'+(pending.tipo===p?' selected':'')+'" onclick="EF.selectManutencaoTipo(this,\''+p+'\')">'+p+'</button>';
+    }).join('') + '</div>' +
+    '<input id="ef-manutencao-tipo-custom" placeholder="Ou digite outro tipo..." style="margin-top:8px;" value="'+(presets.indexOf(pending.tipo)===-1?escapeHtml(pending.tipo):'')+'" oninput="EF.onManutencaoTipoCustom(this.value)"></div>';
+  html += '<div class="ef-field"><span class="ef-field-label">A cada quantos KM</span><input id="ef-manutencao-intervalo" type="number" value="'+pending.intervaloKm+'" placeholder="Ex: 3000"></div>';
+  html += '<button class="btn btn-primary btn-block" onclick="EF.saveManutencao()">Salvar</button>';
+  return html;
+}
+function selectManutencaoTipo(el, tipo){
+  pending.tipo = tipo;
+  var parent = el.parentElement;
+  Array.prototype.forEach.call(parent.querySelectorAll('.chip'), function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+  document.getElementById('ef-manutencao-tipo-custom').value = '';
+}
+function onManutencaoTipoCustom(v){ if(v.trim()) pending.tipo = v; }
+function saveManutencao(){
+  var intervalo = parseFloat(document.getElementById('ef-manutencao-intervalo').value);
+  if(!pending.tipo || !pending.tipo.trim()){ toast('Informe o tipo de manutenção'); return; }
+  if(!intervalo || intervalo<=0){ toast('Informe um intervalo de KM válido'); return; }
+  addManutencao(pending.veiculoId, pending.tipo, intervalo);
+  closeModal();
+  toast('Manutenção adicionada ✓');
+}
+
 /* ---------------- theme ---------------- */
 function applyTheme(){
   var root = document.getElementById('ef-root');
@@ -764,6 +1001,19 @@ function renderDashboard(){
     '</div></div>';
 
   html += '<div class="card" style="margin-top:14px;">' + diaBtnHtml + '</div>';
+
+  var veiculoAtivo = getVeiculoAtivo();
+  if(veiculoAtivo){
+    var vencidas = manutencoesVencidas(veiculoAtivo);
+    if(vencidas.length){
+      html += '<div class="ef-limitation" style="background:var(--danger-bg);color:var(--danger);margin-top:12px;">' +
+        vencidas.map(function(m){
+          return '🔧 '+escapeHtml(veiculoAtivo.nome)+': hora de "'+escapeHtml(m.tipo)+'"! ('+formatKm(m.desde)+' desde a última)' +
+            ' <button class="btn btn-danger" style="padding:6px 12px;font-size:12px;margin-left:4px;" onclick="EF.marcarManutencaoFeita(\''+veiculoAtivo.id+'\',\''+m.id+'\')">Marcar feita</button>';
+        }).join('<br>') +
+        '</div>';
+    }
+  }
 
   html += '<div id="ef-stat-grid">' +
     '<div class="stat stat-entregas"><div class="label">Entregas hoje</div><div class="num">'+s.count+'</div></div>' +
@@ -1046,23 +1296,38 @@ function renderEntregaDetalhe(id){
 }
 
 /* ---------------- iniciar / finalizar dia ---------------- */
-function openIniciarDia(){ ui.modal='iniciarDia'; render(); }
+function openIniciarDia(){ pending = {veiculoId: state.veiculoAtivoId}; ui.modal='iniciarDia'; render(); }
 function renderIniciarDiaModal(){
   var html = '<div class="row between"><div class="ef-modal-title">Iniciar dia</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
   html += '<div class="muted" style="margin-bottom:14px;">'+formatDateBR(todayISO())+' • início às '+nowTimeStr()+'</div>';
+  if(state.veiculos.length>1){
+    html += '<div class="ef-field"><span class="ef-field-label">Veículo</span><div class="chip-row">' +
+      state.veiculos.map(function(v){
+        return '<button type="button" class="chip'+(pending.veiculoId===v.id?' selected':'')+'" onclick="EF.selectVeiculoIniciarDia(this,\''+v.id+'\')">'+escapeHtml(v.nome)+'</button>';
+      }).join('') + '</div></div>';
+  }
   html += '<div class="ef-field"><span class="ef-field-label">KM inicial (opcional)</span><input type="number" inputmode="decimal" id="ef-km-inicial" placeholder="Ex: 12350"></div>';
   html += '<div class="ef-field"><span class="ef-field-label">Combustível inicial (opcional)</span><input id="ef-combustivel-inicial" placeholder="Ex: tanque cheio, 1/2 tanque..."></div>';
   html += '<button class="btn btn-primary btn-block" onclick="EF.confirmIniciarDia()">Iniciar dia</button>';
   return html;
 }
+function selectVeiculoIniciarDia(el, id){
+  pending.veiculoId = id;
+  var parent = el.parentElement;
+  Array.prototype.forEach.call(parent.querySelectorAll('.chip'), function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
 function confirmIniciarDia(){
   var km = document.getElementById('ef-km-inicial').value;
   var comb = document.getElementById('ef-combustivel-inicial').value;
+  var veiculoId = pending.veiculoId || state.veiculoAtivoId;
+  state.veiculoAtivoId = veiculoId;
   state.diaAtual = {
     id: uid(), data: todayISO(), horaInicio: nowTimeStr(),
     kmInicial: km!=='' ? parseFloat(km) : null,
     combustivelInicial: comb || null,
-    horaFim: null, kmFinal: null, kmGpsAcumulado: 0
+    horaFim: null, kmFinal: null, kmGpsAcumulado: 0,
+    veiculoId: veiculoId
   };
   state.metaAtingidaAlgumDia = false;
   persist();
@@ -1093,9 +1358,11 @@ function confirmFinalizarDia(){
     entregasCount: s.count, faturamento: s.faturamento, despesas: s.despesas, lucro: s.lucro,
     kmRodados: kmRodadosManual,
     kmGpsEstimado: d.kmGpsAcumulado || 0,
-    tempoTrabalhadoMin: tempoMin
+    tempoTrabalhadoMin: tempoMin,
+    veiculoId: d.veiculoId || state.veiculoAtivoId
   };
   pararRastreioGPS();
+  addKmAoVeiculo(resumo.veiculoId, kmDoDia(resumo));
   state.diasFinalizados.push(resumo);
   state.diaAtual = null;
   persist();
@@ -1411,6 +1678,32 @@ function renderConfig(){
   });
   html += '</div>';
 
+  html += '<div class="ef-section-title">Veículos e manutenção</div>';
+  state.veiculos.forEach(function(v){
+    var isAtivo = v.id===state.veiculoAtivoId;
+    var stats = manutencoesStatus(v);
+    html += '<div class="card" style="margin-bottom:10px;'+(isAtivo?'border-color:var(--primary);':'')+'">';
+    html += '<div class="row between"><strong>'+escapeHtml(v.nome)+(v.placa?' • '+escapeHtml(v.placa):'')+'</strong>' +
+      (isAtivo ? '<span class="chip selected" style="pointer-events:none;">Em uso</span>' : '<button class="btn btn-outline" style="padding:6px 12px;font-size:12px;" onclick="EF.setVeiculoAtivo(\''+v.id+'\')">Usar este</button>') +
+      '</div>';
+    html += '<div class="muted" style="margin-top:6px;">KM acumulado: '+formatKm(v.kmTotalAcumulado||0)+'</div>';
+    stats.forEach(function(m){
+      html += '<div class="ef-goal" style="margin-top:10px;">' +
+        '<div class="row between"><span class="label">'+escapeHtml(m.tipo)+'</span><span class="muted">'+formatKm(m.desde)+' / '+formatKm(m.intervaloKm)+'</span></div>' +
+        '<div class="ef-goal-bar-bg"><div class="ef-goal-bar-fill'+(m.vencida?' done':'')+'" style="width:'+m.pct+'%;'+(m.vencida?'background:var(--danger);':'')+'"></div></div>' +
+        '<div class="row" style="margin-top:6px;gap:8px;">' +
+        '<button class="btn btn-ghost" style="flex:1;padding:8px;font-size:12px;" onclick="EF.marcarManutencaoFeita(\''+v.id+'\',\''+m.id+'\')">Marcar feita</button>' +
+        '<button class="btn btn-ghost" style="padding:8px 10px;font-size:12px;color:var(--danger);" onclick="EF.removeManutencao(\''+v.id+'\',\''+m.id+'\')">Remover</button>' +
+        '</div></div>';
+    });
+    html += '<button class="btn btn-ghost btn-block" style="margin-top:10px;" onclick="EF.openAddManutencao(\''+v.id+'\')">+ Adicionar manutenção</button>';
+    if(state.veiculos.length>1){
+      html += '<button class="btn btn-ghost btn-block" style="margin-top:8px;color:var(--danger);" onclick="EF.deleteVeiculo(\''+v.id+'\')">Excluir veículo</button>';
+    }
+    html += '</div>';
+  });
+  html += '<button class="btn btn-outline btn-block" style="margin-bottom:20px;" onclick="EF.openAddVeiculo()">+ Adicionar veículo</button>';
+
   html += '<div class="card" style="margin-top:12px;">' +
     '<div class="ef-config-row"><span>Valor padrão</span><input class="ef-mini-input" type="number" value="'+c.valorPadrao+'" onchange="EF.updateConfigNum(\'valorPadrao\',this.value)"></div>' +
     '<div class="ef-config-row"><span>Custo por KM</span><input class="ef-mini-input" type="number" step="0.01" value="'+c.custoPorKm+'" onchange="EF.updateConfigNum(\'custoPorKm\',this.value)"></div>' +
@@ -1424,6 +1717,23 @@ function renderConfig(){
     '<button class="'+(c.tema==='dark'?'active':'')+'" onclick="EF.setTema(\'dark\')">Escuro</button>' +
     '<button class="'+(c.tema==='auto'?'active':'')+'" onclick="EF.setTema(\'auto\')">Automático</button>' +
     '</div></div>';
+
+  html += '<div class="ef-section-title">Backup na nuvem</div>';
+  html += '<div class="card">';
+  if(usuarioNuvem){
+    html += '<div class="row" style="gap:10px;">' +
+      (usuarioNuvem.foto ? '<img src="'+usuarioNuvem.foto+'" style="width:40px;height:40px;border-radius:50%;">' : '<div class="ef-thumb-placeholder">👤</div>') +
+      '<div style="flex:1;min-width:0;"><div style="font-weight:700;">'+escapeHtml(usuarioNuvem.nome||'Conta Google')+'</div><div class="muted" style="font-size:12px;">'+escapeHtml(usuarioNuvem.email)+'</div></div>' +
+      '</div>';
+    html += '<button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="EF.enviarBackupNuvem()">☁️ Enviar backup para a nuvem</button>';
+    html += '<button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="EF.baixarBackupNuvem()">☁️ Baixar backup da nuvem</button>';
+    html += '<button class="btn btn-ghost btn-block" style="margin-top:10px;color:var(--danger);" onclick="EF.sairDaNuvem()">Sair da conta</button>';
+    html += '<div class="ef-limitation">As fotos das entregas não vão para a nuvem (ficam só neste aparelho) — apenas entregas, despesas, clientes, veículos e configurações.</div>';
+  } else {
+    html += '<div class="muted" style="margin-bottom:12px;">Faça login com sua conta Google para guardar uma cópia dos seus dados na nuvem — assim, se trocar de celular, você não perde nada.</div>';
+    html += '<button class="btn btn-primary btn-block" onclick="EF.fazerLoginGoogle()">Fazer login com Google</button>';
+  }
+  html += '</div>';
 
   html += '<div class="ef-section-title">Backup e dados</div>';
   html += '<div class="card">' +
@@ -1468,7 +1778,7 @@ function exportBackupJSON(){
           entregas: state.entregas, despesas: state.despesas, diaAtual: state.diaAtual,
           diasFinalizados: state.diasFinalizados, config: state.config,
           conquistas: state.conquistas, metaAtingidaAlgumDia: state.metaAtingidaAlgumDia,
-          clientes: state.clientes
+          clientes: state.clientes, veiculos: state.veiculos, veiculoAtivoId: state.veiculoAtivoId
         },
         fotos: fotos
       };
@@ -1512,6 +1822,9 @@ function restaurarBackup(backup){
   state.conquistas = d.conquistas || [];
   state.metaAtingidaAlgumDia = d.metaAtingidaAlgumDia || false;
   state.clientes = d.clientes || [];
+  state.veiculos = d.veiculos || [];
+  state.veiculoAtivoId = d.veiculoAtivoId || null;
+  garantirVeiculoPadrao();
   var fotos = backup.fotos || {};
   var ids = Object.keys(fotos);
   Promise.all(ids.map(function(id){ return setFoto(id, fotos[id]); }))
@@ -1553,6 +1866,8 @@ function renderModal(){
   else if(ui.modal==='finalizarDia') inner = renderFinalizarDiaModal();
   else if(ui.modal==='resumoDia') inner = renderResumoDiaModal(ui.modalData);
   else if(ui.modal==='confirm') inner = renderConfirmModal();
+  else if(ui.modal==='veiculo') inner = renderVeiculoModal();
+  else if(ui.modal==='manutencao') inner = renderManutencaoModal();
 
   wrap.innerHTML = '<div id="ef-modal-overlay" onclick="EF.onOverlayClick(event)"><div id="ef-modal-sheet">'+inner+'</div></div>';
 }
@@ -1594,6 +1909,7 @@ function runConfirm(){
 /* ---------------- boot ---------------- */
 function boot(){
   document.getElementById('ef-scroll').innerHTML = '<div class="ef-empty"><div class="big">🚴</div>Carregando seus dados...</div>';
+  iniciarFirebase();
   loadAll().then(function(){
     render();
     if(state.diaAtual){ iniciarRastreioGPS(); } // retoma o rastreio de KM se o dia já estava em andamento
@@ -1619,7 +1935,14 @@ window.EF = {
   closeModal: closeModal, onOverlayClick: onOverlayClick, cycleTheme: cycleTheme,
   cancelConfirm: cancelConfirm, runConfirm: runConfirm,
   onClienteInput: onClienteInput, selectClienteChip: selectClienteChip,
-  setHistoricoView: setHistoricoView, filtrarPorClienteIdx: filtrarPorClienteIdx
+  setHistoricoView: setHistoricoView, filtrarPorClienteIdx: filtrarPorClienteIdx,
+  selectVeiculoIniciarDia: selectVeiculoIniciarDia, setVeiculoAtivo: setVeiculoAtivo,
+  marcarManutencaoFeita: marcarManutencaoFeita, removeManutencao: removeManutencao,
+  openAddVeiculo: openAddVeiculo, saveVeiculo: saveVeiculo, deleteVeiculo: deleteVeiculo,
+  openAddManutencao: openAddManutencao, selectManutencaoTipo: selectManutencaoTipo,
+  onManutencaoTipoCustom: onManutencaoTipoCustom, saveManutencao: saveManutencao,
+  fazerLoginGoogle: fazerLoginGoogle, sairDaNuvem: sairDaNuvem,
+  enviarBackupNuvem: enviarBackupNuvem, baixarBackupNuvem: baixarBackupNuvem
 };
 
 boot();

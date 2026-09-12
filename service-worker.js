@@ -1,4 +1,4 @@
-var CACHE_NAME = 'entrega-facil-v6';
+var CACHE_NAME = 'controle-diario-v8';
 var ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function(event){
