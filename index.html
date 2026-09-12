@@ -256,9 +256,10 @@ function iniciarFirebase(){
       console.warn('erro ao concluir login', e);
       toast('⚠️ Erro ao concluir login: '+(e && e.code ? e.code : (e && e.message ? e.message : 'desconhecido')));
     });
+    firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(e){ console.warn('persistência não pôde ser definida', e); });
     firebaseAuth.onAuthStateChanged(function(user){
       usuarioNuvem = user ? {uid:user.uid, nome:user.displayName||'', email:user.email||'', foto:user.photoURL||''} : null;
-      if(ui.tab==='config') render();
+      render();
     });
   } catch(e){ console.warn('Firebase não pôde iniciar', e); }
 }
