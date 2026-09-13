@@ -273,9 +273,15 @@ function fazerLoginGoogle(){
   if(!firebaseDisponivel){ toast('⚠️ Serviço de nuvem indisponível no momento.'); return; }
   toast('Abrindo login do Google...');
   var provider = new firebase.auth.GoogleAuthProvider();
-  firebaseAuth.signInWithRedirect(provider).catch(function(e){
-    console.warn('erro ao iniciar login', e);
-    toast('⚠️ Erro ao abrir login: '+(e && e.code ? e.code : (e && e.message ? e.message : 'desconhecido')));
+  firebaseAuth.signInWithPopup(provider).then(function(result){
+    if(result && result.user) onLoginNuvemSucesso(result.user);
+  }).catch(function(e){
+    console.warn('popup falhou, tentando redirect', e);
+    // Se o popup não puder abrir neste app instalado, tenta pelo método de redirecionamento
+    firebaseAuth.signInWithRedirect(provider).catch(function(e2){
+      console.warn('erro ao iniciar login', e2);
+      toast('⚠️ Erro ao abrir login: '+(e2 && e2.code ? e2.code : (e2 && e2.message ? e2.message : 'desconhecido')));
+    });
   });
 }
 function sairDaNuvem(){
