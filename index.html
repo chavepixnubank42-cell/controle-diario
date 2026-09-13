@@ -1064,7 +1064,7 @@ function cycleTheme(){
 function quickAdd(valor){
   var e = {
     id: uid(), valor: valor, cliente:'', endereco:'', observacao:'',
-    temFoto:false, data: todayISO(), horario: nowTimeStr(), timestamp: Date.now()
+    temFoto:false, data: todayISO(), horario: nowTimeStr(), timestamp: Date.now(), pago: true
   };
   state.entregas.push(e);
   persist();
@@ -1081,14 +1081,14 @@ function openAddEntrega(){
     openIniciarDia();
     return;
   }
-  pending = {valor: state.config.valorPadrao, fotoDataUrl:null, editId:null};
+  pending = {valor: state.config.valorPadrao, fotoDataUrl:null, editId:null, pago:true};
   ui.modal = 'entrega';
   render();
 }
 function openEditEntrega(id){
   var e = state.entregas.find(function(x){return x.id===id;});
   if(!e) return;
-  pending = {valor: e.valor, fotoDataUrl:null, editId:id};
+  pending = {valor: e.valor, fotoDataUrl:null, editId:id, pago: e.pago!==false};
   ui.modal = 'entrega';
   render();
   if(e.temFoto){
@@ -1116,6 +1116,11 @@ function renderEntregaModal(){
   html += '<div class="ef-field"><span class="ef-field-label">Valor</span><div class="chip-row">'+chipHtml+'</div>' +
     '<div id="ef-valor-custom-wrap" style="margin-top:10px; display:'+(showCustom?'block':'none')+';">' +
     '<input type="number" inputmode="decimal" id="ef-valor-custom" placeholder="0,00" value="'+(showCustom?pending.valor:'')+'" oninput="EF.onCustomValorInput(this.value)"></div></div>';
+
+  html += '<div class="ef-field"><span class="ef-field-label">Status do pagamento</span><div class="chip-row">' +
+    '<button type="button" class="chip'+(pending.pago?' selected':'')+'" style="'+(pending.pago?'background:var(--success);border-color:var(--success);':'')+'" onclick="EF.setPendingPago(true,this)">🟢 Pago</button>' +
+    '<button type="button" class="chip'+(!pending.pago?' selected':'')+'" style="'+(!pending.pago?'background:var(--accent);border-color:var(--accent);':'')+'" onclick="EF.setPendingPago(false,this)">🟠 A receber</button>' +
+    '</div></div>';
 
   var freq = clientesFrequentes(6);
   html += '<div class="ef-field"><span class="ef-field-label">Nome do cliente (opcional)</span>';
@@ -1155,6 +1160,18 @@ function selectValorChip(el, v){
   Array.prototype.forEach.call(parent.querySelectorAll('.chip'), function(c){ c.classList.remove('selected'); });
   el.classList.add('selected');
   document.getElementById('ef-valor-custom-wrap').style.display = 'none';
+}
+function setPendingPago(pago, el){
+  pending.pago = pago;
+  var parent = el.parentElement;
+  Array.prototype.forEach.call(parent.querySelectorAll('.chip'), function(c){
+    c.classList.remove('selected');
+    c.style.background = '';
+    c.style.borderColor = '';
+  });
+  el.classList.add('selected');
+  el.style.background = pago ? 'var(--success)' : 'var(--accent)';
+  el.style.borderColor = pago ? 'var(--success)' : 'var(--accent)';
 }
 function selectValorOutro(){
   pending.valor = null;
@@ -1247,7 +1264,7 @@ function saveEntrega(){
 
   if(pending.editId){
     var e = state.entregas.find(function(x){return x.id===pending.editId;});
-    e.valor = valor; e.cliente = cliente; e.endereco = endereco; e.observacao = obs;
+    e.valor = valor; e.cliente = cliente; e.endereco = endereco; e.observacao = obs; e.pago = !!pending.pago;
     if(pending.fotoDataUrl){ e.temFoto = true; setFoto(e.id, pending.fotoDataUrl); }
     else if(pending.fotoDataUrl===null && e.temFoto){ e.temFoto=false; deleteFoto(e.id); }
     persist();
@@ -1255,7 +1272,7 @@ function saveEntrega(){
   } else {
     var id = uid();
     var novo = {
-      id:id, valor:valor, cliente:cliente, endereco:endereco, observacao:obs,
+      id:id, valor:valor, cliente:cliente, endereco:endereco, observacao:obs, pago: pending.pago!==false,
       temFoto: !!pending.fotoDataUrl, data: todayISO(), horario: nowTimeStr(), timestamp: Date.now()
     };
     state.entregas.push(novo);
@@ -1278,6 +1295,15 @@ function deleteEntrega(id){
   });
 }
 
+function toggleEntregaPago(id){
+  var e = state.entregas.find(function(x){return x.id===id;});
+  if(!e) return;
+  e.pago = !(e.pago!==false);
+  persist();
+  render();
+  toast(e.pago ? '🟢 Marcada como paga' : '🟠 Marcada como a receber');
+}
+
 /* ---------------- detail modal ---------------- */
 function openEntregaDetalhe(id){
   ui.modal = 'entregaDetalhe';
@@ -1287,6 +1313,7 @@ function openEntregaDetalhe(id){
 function renderEntregaDetalhe(id){
   var e = state.entregas.find(function(x){return x.id===id;});
   if(!e) return '<div class="muted">Entrega não encontrada.</div>';
+  var pago = e.pago!==false;
   var html = '<div class="row between"><div class="ef-modal-title">Detalhes da entrega</div><button class="ef-close-x" onclick="EF.closeModal()">✕</button></div>';
   html += '<div class="card">';
   html += '<div class="row between"><span class="label">Valor</span><span class="num" style="font-size:22px;color:var(--success);">'+formatBRL(e.valor)+'</span></div>';
@@ -1296,7 +1323,8 @@ function renderEntregaDetalhe(id){
   if(e.observacao) html += '<div style="margin-top:10px;"><span class="label">Observação</span><div>'+escapeHtml(e.observacao)+'</div></div>';
   html += '<div id="ef-detail-photo" style="margin-top:12px;"></div>';
   html += '</div>';
-  html += '<div class="row" style="margin-top:14px;gap:10px;">' +
+  html += '<button class="btn btn-block" style="margin-top:14px;'+(pago?'background:var(--success);color:#fff;':'background:var(--accent);color:#fff;')+'" onclick="EF.toggleEntregaPago(\''+id+'\')">'+(pago?'🟢 Pago — toque para marcar como a receber':'🟠 A receber — toque para marcar como pago')+'</button>';
+  html += '<div class="row" style="margin-top:10px;gap:10px;">' +
     '<button class="btn btn-outline" style="flex:1" onclick="EF.openEditEntrega(\''+id+'\')">Editar</button>' +
     '<button class="btn btn-danger" style="flex:1" onclick="EF.deleteEntrega(\''+id+'\')">Excluir</button>' +
     '</div>';
@@ -1438,6 +1466,12 @@ function renderHistorico(){
     return;
   }
 
+  var pendentes = list.filter(function(e){ return e.pago===false; });
+  if(pendentes.length){
+    var totalPendente = sumValor(pendentes);
+    html += '<div class="ef-limitation" style="background:var(--accent-bg);color:var(--accent);margin-bottom:14px;">💰 A receber: '+formatBRL(totalPendente)+' ('+pendentes.length+' entrega'+(pendentes.length>1?'s':'')+')</div>';
+  }
+
   if(ui.historicoView==='cliente'){
     _histGroups = groupByCliente(list);
     html += _histGroups.map(function(g, i){
@@ -1462,11 +1496,14 @@ function renderHistorico(){
 
   list.sort(function(a,b){return b.timestamp-a.timestamp;});
   html += list.map(function(e){
+    var pago = e.pago!==false;
     return '<div class="ef-delivery-card" onclick="EF.openEntregaDetalhe(\''+e.id+'\')">' +
       '<div class="ef-thumb-placeholder" id="thumb-'+e.id+'">'+(e.temFoto?'':'👤')+'</div>' +
       '<div style="flex:1;min-width:0;">' +
         '<div class="row between"><span style="font-weight:700;">'+ (e.cliente? escapeHtml(e.cliente) : 'Cliente não informado') +'</span><span style="font-weight:800;color:var(--success);">'+formatBRL(e.valor)+'</span></div>' +
-        '<div class="muted">'+formatDateBR(e.data)+' • '+e.horario+'</div>' +
+        '<div class="row between" style="margin-top:2px;"><span class="muted">'+formatDateBR(e.data)+' • '+e.horario+'</span>' +
+        '<button class="chip" style="padding:4px 10px;font-size:11px;'+(pago?'background:var(--success-bg);color:var(--success);border-color:transparent;':'background:var(--accent-bg);color:var(--accent);border-color:transparent;')+'" onclick="event.stopPropagation(); EF.toggleEntregaPago(\''+e.id+'\')">'+(pago?'🟢 Pago':'🟠 A receber')+'</button>' +
+        '</div>' +
       '</div></div>';
   }).join('');
   document.getElementById('ef-scroll').innerHTML = html;
@@ -1938,6 +1975,7 @@ window.EF = {
   selectValorChip: selectValorChip, selectValorOutro: selectValorOutro, onCustomValorInput: onCustomValorInput,
   onPhotoChosen: onPhotoChosen, removePhoto: removePhoto, saveEntrega: saveEntrega,
   openEditEntrega: openEditEntrega, openEntregaDetalhe: openEntregaDetalhe, deleteEntrega: deleteEntrega,
+  toggleEntregaPago: toggleEntregaPago, setPendingPago: setPendingPago,
   openIniciarDia: openIniciarDia, confirmIniciarDia: confirmIniciarDia,
   openFinalizarDia: openFinalizarDia, confirmFinalizarDia: confirmFinalizarDia,
   onBuscaInput: onBuscaInput, setFiltro: setFiltro,
