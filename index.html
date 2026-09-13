@@ -1480,6 +1480,7 @@ function renderHistorico(){
         '<div style="flex:1;min-width:0;">' +
           '<div class="row between"><span style="font-weight:700;">'+escapeHtml(g.nome)+'</span><span style="font-weight:800;color:var(--success);">'+formatBRL(g.total)+'</span></div>' +
           '<div class="muted">'+g.count+' entrega'+(g.count>1?'s':'')+' • '+formatBreakdown(g.entregas)+'</div>' +
+          (g.countPendente>0 ? '<div style="margin-top:6px;"><span class="chip" style="padding:4px 10px;font-size:11px;background:var(--accent-bg);color:var(--accent);border-color:transparent;">🟠 '+formatBRL(g.totalPendente)+' a receber ('+g.countPendente+')</span></div>' : '') +
         '</div></div>';
     }).join('');
     var totalGeralClientes = _histGroups.reduce(function(a,g){return a+g.total;},0);
@@ -1528,7 +1529,11 @@ function groupByCliente(list){
   });
   return Object.keys(map).map(function(k){
     var g = map[k];
-    return {nome:g.nome, count:g.entregas.length, total:sumValor(g.entregas), entregas:g.entregas};
+    var pendentes = g.entregas.filter(function(e){ return e.pago===false; });
+    return {
+      nome:g.nome, count:g.entregas.length, total:sumValor(g.entregas), entregas:g.entregas,
+      totalPendente: sumValor(pendentes), countPendente: pendentes.length
+    };
   }).sort(function(a,b){ return b.total-a.total; });
 }
 function formatBreakdown(entregas){
