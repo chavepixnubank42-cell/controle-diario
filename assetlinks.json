@@ -1,8 +1,12 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "app.netlify.novoaplicativo.twa",
-        "sha256_cert_fingerprints": ["9E:08:F1:C7:10:EB:74:BF:23:00:CB:24:A2:24:FD:10:97:26:5A:4F:16:EB:3F:AB:EE:D8:44:E7:11:0C:41:0F"]
-      }
-    }]
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.controlediario.app",
+      "sha256_cert_fingerprints": [
+        "43:82:D0:A8:DE:DB:54:F7:CB:29:9B:8E:51:6E:EE:07:DE:73:DE:11:22:E0:E7:5F:5E:38:46:D8:F8:1F:A8:BA"
+      ]
+    }
+  }
+]
